@@ -262,11 +262,7 @@ def ust_header(aktif=""):
     <a class="logo-bag" href="/" aria-label="{e(S['marka'])} ana sayfa">{logo()}</a>
     <nav class="menu" id="menu" aria-label="Ana menü">{ln}</nav>
     <div class="ust-ara">
-      <a class="ust-tel" href="tel:{S['tel_link']}">
-        <span class="ust-tel-ik">{svg_tel()}</span>
-        <span class="ust-tel-ic"><small>Hemen arayın</small><strong>{e(S['tel'])}</strong></span>
-      </a>
-      {teklif_btn("dg dg-teklif")}
+      {teklif_btn()}
       <button class="hamburger" id="hamburger" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">
         <span></span><span></span><span></span>
       </button>
@@ -562,10 +558,11 @@ def harita_bolum(ilce=None):
     return f"""<section class="bol harita-bol" id="iletisim"><div class="kap dar">
   <h2>{e(baslik)}</h2>
   <p class="giris">{e(giris)}</p>
-  <div class="harita">
-    <iframe src="{e(D.HARITA_EMBED)}" title="Deha İskele konumu — Google Haritalar"
-      loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen></iframe>
+  <div class="harita" data-src="{e(D.HARITA_EMBED)}">
+    <button type="button" class="harita-ac">
+      <span class="harita-ikon" aria-hidden="true">📍</span>
+      <span><strong>Haritayı aç</strong><small>Google Haritalar bu noktada yüklenir</small></span>
+    </button>
   </div>
   <div class="dg-grup">
     <a class="dg dg-sari" href="{e(D.HARITA_LINK)}" target="_blank" rel="noopener">Yol tarifi al</a>
@@ -998,87 +995,12 @@ def tur_sss(t):
          "götürüyoruz, depolama ve bakım sizin derdiniz olmuyor."),
     ]
 
-
-# ── Tür sayfası içerik bölümleri ────────────────────────────────────────────
-# Kullanıcı 2026-09-01: her tür sayfası kendi konusunda şu sorulara cevap versin —
-# "X nedir?", "İstanbul'da nereden kiralanır?", "ne kadara kiralanır?",
-# "teslim süreci nasıl?". Tamamı İstanbul odaklı ve kullanıcının kendi diliyle
-# ([[feedback_web4medya_kullanici_dili]]): 1. şahıs usta sesi, `:)` ve `..`,
-# dürüst uyarılar. ⚠️ Uydurma rakam YOK — fiyat listesi hâlâ onaylanmadı.
-
-def tur_nedir(t):
-    teknik = t["teknik"][0] if t["teknik"] else ""
-    return (f'<h2>{e(t["ad"])} Nedir?</h2>'
-            f'<p>{e(t["ozet"])} Kısaca anlatayım: {e(teknik[0].lower() + teknik[1:])}</p>'
-            f'<p>Sahada en çok karıştırılan konu bu oluyor — "iskele iskeledir" deyip '
-            f'geçmeyin :) Her sistemin kendi mantığı, kendi kurulum düzeni ve kendi '
-            f'sınırı var. Yanlış sistem seçmek hem paradan hem zamandan götürüyor.</p>')
-
-def tur_nereden(t):
-    ad = t["ad"]
-    # İstanbul odağı: merkez + iki yaka + örnek ilçe bağlantıları
-    ornek = [i for i in D.ILCELER if i["slug"] in
-             ("esenyurt", "kadikoy", "basaksehir", "umraniye", "bagcilar", "maltepe")]
-    ln = " · ".join(f'<a href="{ilce_yolu(i)}">{e(i["ad"])}</a>' for i in ornek)
-    return (f'<h2>İstanbul\'da {e(ad)} Nereden Kiralanır?</h2>'
-            f'<p>Bizden :) Deha İskele olarak depomuz <strong>{e(S["adres_ilce"])}</strong>\'da; '
-            f'ekip Avrupa ve Anadolu yakasının tamamına aynı yerden çıkıyor. Yani '
-            f'{e(ad.lower())} için İstanbul\'un neresinde olursanız olun aynı ekiple '
-            f'çalışıyorsunuz.</p>'
-            f'<p>Bir telefon yeterli: <a href="tel:{S["tel_link"]}">{e(S["tel"])}</a> ya da '
-            f'<a href="tel:{S["tel2_link"]}">{e(S["tel2"])}</a>. Her gün 08:30 – 19:00 arası '
-            f'açığız, Pazar dahil. Keşif ücretsiz — gelip cepheyi ölçüyor, zemini ve aracın '
-            f'yanaşacağı yeri görüyoruz.</p>'
-            f'<p>Sık çalıştığımız ilçelerden birkaçı: {ln} — '
-            f'<a href="/#ilceler">39 ilçenin tamamına</a> kurulum yapıyoruz.</p>')
-
-def tur_fiyat_bolumu(t):
-    return (f'<h2>İstanbul\'da {e(t["ad"])} Kiralama Fiyatları</h2>'
-            f'<p>Size dobra söyleyeyim: sabit bir liste fiyatı yok, olamaz da. Rakam dört '
-            f'kalemden çıkıyor — <strong>cephe metrekaresi</strong>, <strong>kiralama '
-            f'süresi</strong>, <strong>kurulum-söküm işçiliği</strong> ve '
-            f'<strong>nakliye</strong>.</p>'
-            f'<p>Metrekare hesabı basit: cephe eni × bina yüksekliği. Beş katlı, 12 metre '
-            f'enindeki bir cephe kabaca 170-180 m² ediyor.. Kendi ölçünüzü '
-            f'<a href="/#hesap">hesaplayıcıdan</a> çıkarıp arayabilirsiniz, telefonda '
-            f'aralık veririm. Kesin rakam keşiften sonra çıkıyor çünkü balkon, çıkma, '
-            f'saçak ve zemin kotu ölçüyü değiştiriyor.</p>'
-            f'<p>Kiralama süresi de işinize göre: <strong>günlük, haftalık ve aylık</strong> '
-            f'seçeneklerimiz var. Kısa işlerde günlük, uzun soluklu projelerde aylık en '
-            f'ekonomiği oluyor. Neyin fiyatı ne kadar değiştirdiğini '
-            f'<a href="/iskele-kiralama-fiyatlari/">fiyat rehberinde</a> kalem kalem yazdım.</p>'
-            f'<p><strong>Bir uyarı:</strong> ölçü almadan telefonda kesin rakam veren birine '
-            f'temkinli yaklaşın. O rakam keşiften sonra değişir.</p>')
-
-def tur_teslim(t):
-    return (f'<h2>Teslim ve Kurulum Süreci Nasıl İşliyor?</h2>'
-            f'<ol class="adim">'
-            f'<li><strong>Arayın, kabaca anlatın.</strong> Kat sayısı ve cephe eni yeterli; '
-            f'telefonda aralık verelim.</li>'
-            f'<li><strong>Ücretsiz keşif.</strong> Geliyoruz; cepheyi ölçüyor, zemini ve '
-            f'aracın yanaşacağı yeri görüyoruz.</li>'
-            f'<li><strong>Net fiyat ve tarih.</strong> Metrekare, süre ve işçilik netleşince '
-            f'rakamı ve kurulum gününü söylüyoruz. Sonradan kalem eklenmiyor.</li>'
-            f'<li><strong>Teslimat ve kurulum.</strong> Malzeme sahaya geliyor, zemin '
-            f'hazırlanıyor, {e(kucuk(t["ad"]))} kuruluyor. Normal bir apartman cephesinde '
-            f'iş çoğunlukla bir günde bitiyor.</li>'
-            f'<li><strong>Teslim kontrolü.</strong> Korkuluk, platform, topuk levhası ve '
-            f'bağlantılar tek tek gözden geçiriliyor. İskele ondan sonra sizin.</li>'
-            f'<li><strong>Söküm.</strong> İş bitince bir telefon yeterli; sökümü biz '
-            f'yapıyoruz, malzeme sizde kalmıyor.</li>'
-            f'</ol>'
-            f'<p>Tüm süreci adım adım <a href="/iskele-kurulum-sokum-sureci/">kurulum ve '
-            f'söküm rehberinde</a> anlattım.</p>')
-
 def tur_sayfasi(t):
     yol = f'/{t["slug"]}/'
     sorular = tur_sss(t)
-    # Kullanıcı 2026-09-01: tüm tür sayfalarında H1 ve <title> aynı kalıpta olacak —
-    # "İstanbul {Tür} Kiralama - Deha İskele". SERP başlığı ile H1 birebir aynı.
-    h1 = f"İstanbul {t['ad']} Kiralama - {S['marka']}"
-    baslik = h1
-    if len(baslik) > 70:
-        baslik = f"İstanbul {t['ad']} Kiralama | {S['marka']}"
+    baslik = f"{t['h1']} — İstanbul | {S['marka']}"
+    if len(baslik) > 70:                     # denetim sınırı; uzun adlarda kısa biçime düş
+        baslik = f"{t['ad']} Kiralama İstanbul | {S['marka']}"
     aciklama = f"{t['ozet']} İstanbul genelinde kurulum ve söküm dahil. {S['tel']}"
     sema = (isletme_semasi() + sss_semasi(sorular) +
             ldj({"@context": "https://schema.org", "@type": "Service",
@@ -1092,8 +1014,7 @@ def tur_sayfasi(t):
 <main id="ana">
 <section class="hero hero-ic">
   <div class="kap">
-    {hero_h1([h1])}
-    <p class="hero-slogan">{e(t["h1"])}</p>
+    {hero_h1([t["h1"]])}
     <p class="hero-alt">{e(t["ozet"])}</p>
     <div class="dg-grup">{tel_btn()}{wa_btn(f"Merhaba, {t['ad']} hakkında bilgi almak istiyorum.")}</div>
   </div>
@@ -1104,18 +1025,10 @@ def tur_sayfasi(t):
 <section class="bol"><div class="kap">{vitrin(D.TUR_GORSEL.get(t["slug"]), oncelik=True)}</div></section>
 
 <section class="bol"><div class="kap dar metin">
-  {tur_nedir(t)}
-
-  <h2>İstanbul'da {e(t["ad"])} Kimler İçin Uygun?</h2>
+  <h2>Kimler İçin?</h2>
   <p>{e(t["kimin"])}.</p>
 
-  {tur_nereden(t)}
-
-  {tur_fiyat_bolumu(t)}
-
-  {tur_teslim(t)}
-
-  <h2>Kurulumda Neye Dikkat Ediyoruz?</h2>
+  <h2>Kurulumda Neye Dikkat Ediliyor?</h2>
   <ul class="ok-liste">{teknik_ln}</ul>
 
   <h2>Sınırı Nerede?</h2>
@@ -1123,6 +1036,12 @@ def tur_sayfasi(t):
   <p>Bunu size baştan söylemeyi tercih ediyorum :) Her işe her sistemi satmak kolay ama yanlış
      tür seçmek hem cebinizden hem zamanınızdan gidiyor. Keşifte binayı görünce hangisinin
      oturduğunu birlikte belirliyoruz.</p>
+
+  <h2>Fiyat Nasıl Çıkıyor?</h2>
+  <p>Kira cephe metrekaresi ve süre üzerinden; kurulum-söküm ise ayrı bir işçilik kalemi.
+     Kendi ölçünüzü <a href="/#hesap">hesaplayıcıdan</a> kabaca çıkarabilirsiniz. Neyin fiyatı
+     ne kadar değiştirdiğini <a href="/iskele-kiralama-fiyatlari/">fiyat rehberinde</a>
+     kalem kalem yazdım.</p>
 
   <h2>İş Güvenliği</h2>
   <p>Burada pazarlık yok. Korkuluk, platform genişliği ve bağlantı düzeni tercih meselesi değil,

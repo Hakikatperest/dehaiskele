@@ -134,3 +134,18 @@
     });
   });
 })();
+
+/* Kaydırınca üst menü kompaktlaşsın — yalnız sınıf değişiyor, iş CSS'te.
+   passive dinleyici + rAF: kaydırma performansına dokunmuyor. */
+(function () {
+  "use strict";
+  var esik = 40, bekle = false;
+  function bak() {
+    document.body.classList.toggle("kaydi", window.scrollY > esik);
+    bekle = false;
+  }
+  window.addEventListener("scroll", function () {
+    if (!bekle) { bekle = true; requestAnimationFrame(bak); }
+  }, { passive: true });
+  bak();
+})();

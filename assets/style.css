@@ -364,10 +364,12 @@ html.js .gel.gorundu{opacity:1; transform:none}
 
 /* ── Harita (facade — tıklanana kadar iframe yok) ─────────────────────────── */
 .harita-bol{background:var(--ak)}
+/* ⚠️ Kullanıcı 2026-09-01: "harita orada direkt gözüksün" — facade kaldırıldı.
+   Yerine iframe'e loading="lazy" verildi: ilk açılışta yüklenmiyor, harita görünür
+   alana gelince geliyor. Böylece harita hep orada ama sayfa hızı korunuyor. */
 .harita{position:relative; border:1px solid var(--cizgi-ak); border-radius:var(--r);
-  overflow:hidden; background:
-    linear-gradient(135deg,#eef1f5 25%,#e6eaf0 25%,#e6eaf0 50%,#eef1f5 50%,#eef1f5 75%,#e6eaf0 75%);
-  background-size:22px 22px; aspect-ratio:16/9; margin-bottom:18px}
+  overflow:hidden; background:#eef1f5;
+  aspect-ratio:16/9; margin-bottom:18px}
 .harita-ac{position:absolute; inset:0; width:100%; display:flex; align-items:center;
   justify-content:center; gap:13px; border:0; cursor:pointer; background:transparent;
   font:inherit; color:var(--ink); padding:20px}
@@ -795,3 +797,87 @@ html.js .hero-slogan{opacity:0; animation:cipGel .6s ease .26s forwards}
 /* Yatay taşma güvenliği: hiçbir medya kabından geniş olmasın */
 img,picture,svg,video,iframe,object{max-width:100%}
 .kap{max-width:100%}
+
+/* ⚠️ HATA 9 — görseller tüm ekranı kaplıyordu (kullanıcı bildirdi):
+   `.vitrin img{width:100%}` + kaynak görsellerin uzun kenarı, 1180px'lik kapta
+   700-900px yükseklik üretiyordu; portre kaynaklarda (0,67:1) ekranı tamamen
+   dolduruyordu. Vitrin artık sabit oranlı bir kutuda duruyor ve genişliği sınırlı.
+   ⚠️ object-fit:cover burada BİLİNÇLİ — "kırpma yok" kuralı poster/afiş türü
+   görseller içindi; bunlar saha fotoğrafı, kırpma kompozisyonu bozmuyor. */
+.vitrin{max-width:820px; margin-inline:auto; aspect-ratio:16/10}
+.vitrin picture{width:100%; height:100%; display:block}
+.vitrin img{width:100%; height:100%; object-fit:cover; object-position:center}
+.metin .vitrin{max-width:100%}
+.hero-gorsel .vitrin{aspect-ratio:16/9}
+@media (max-width:620px){
+  .vitrin{aspect-ratio:4/3}
+}
+/* Bölünmüş bölümdeki ürün kartları ve PDF kapağı da sınırlı */
+.urun img{aspect-ratio:4/3; object-fit:cover}
+.pdf-ac img{max-height:420px; object-fit:cover; object-position:top}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ÜST MENÜ — kurumsal düzen (2026-09-01, "daha profesyonel olabilirdi")
+   Menü gerçekten ortalandı, linkler dolgu yerine ince alt çizgiyle çalışıyor,
+   sağda telefon bloğu + turuncu Teklif Al ikilisi duruyor.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ust-ic{display:flex; align-items:center; gap:18px}
+.logo-bag{flex:none; margin-right:4px}
+/* ⚠️ Menü artık logoya yapışık değil, kapta ortalanıyor */
+.menu{margin-inline:auto; gap:2px}
+.ust-ara{margin-left:0; flex:none; gap:12px}
+
+/* Linkler: dolgulu hap yerine ince alt çizgi — kurumsal ve sakin */
+.menu a{position:relative; padding:10px 14px; border-radius:8px; background:none;
+  color:#39424f; font-size:.93rem; font-weight:600; letter-spacing:-.005em}
+.menu a::after{content:""; position:absolute; left:14px; right:14px; bottom:4px; height:2px;
+  border-radius:2px; background:linear-gradient(90deg,var(--tur),var(--amber));
+  transform:scaleX(0); transform-origin:left; transition:transform .26s cubic-bezier(.2,.7,.3,1)}
+.menu a:hover{background:none; color:var(--koyu)}
+.menu a:hover::after{transform:scaleX(1)}
+.menu a.aktif{background:none; color:var(--tur-koyu); box-shadow:none}
+.menu a.aktif::after{transform:scaleX(1)}
+
+/* Sağdaki telefon bloğu */
+.ust-tel{display:inline-flex; align-items:center; gap:10px; text-decoration:none;
+  padding:6px 4px; color:var(--koyu); transition:transform .2s}
+.ust-tel:hover{transform:translateY(-1px)}
+.ust-tel-ik{display:grid; place-items:center; width:38px; height:38px; border-radius:11px;
+  background:linear-gradient(178deg,#fff2e6,#ffe2c9); color:var(--tur-koyu);
+  border:1px solid rgba(242,100,0,.24); flex:none;
+  box-shadow:0 2px 0 rgba(242,100,0,.14)}
+.ust-tel-ic{display:flex; flex-direction:column; line-height:1.15}
+.ust-tel-ic small{font-size:.7rem; color:var(--ink-3); font-weight:600; letter-spacing:.02em}
+.ust-tel-ic strong{font-size:.98rem; font-weight:800; letter-spacing:-.01em}
+.ust-tel:hover .ust-tel-ik{background:linear-gradient(178deg,var(--tur-2),var(--tur));
+  color:#fff; border-color:transparent}
+
+/* Teklif Al: marka turuncusu — sayfadaki birincil eylem */
+.ust .dg-teklif{background:linear-gradient(178deg,var(--tur-2),var(--tur)); color:#fff;
+  padding:12px 22px;
+  box-shadow:0 2px 0 var(--tur-koyu), 0 8px 20px rgba(242,100,0,.3),
+             inset 0 1px 0 rgba(255,255,255,.26)}
+.ust .dg-teklif:hover{transform:translateY(-2px);
+  box-shadow:0 4px 0 var(--tur-koyu), 0 14px 28px rgba(242,100,0,.4),
+             inset 0 1px 0 rgba(255,255,255,.3)}
+
+/* Kaydırınca menü kompaktlaşsın — yalnız yükseklik/gölge değişiyor.
+   ⚠️ Renk değiştiren varyant KULLANILMIYOR: JS gecikince beyaz üzerine beyaz
+   logo bırakma riski var (seyrannakliyat'ta yaşanmıştı). */
+.ust-kap{transition:box-shadow .25s}
+body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.1)}
+body.kaydi .ust{--ust-h:70px}
+body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
+.ust,.logo-im{transition:height .25s}
+
+@media (max-width:1120px){
+  .menu a{padding:10px 10px; font-size:.9rem}
+  .ust-tel-ic{display:none}
+  .ust-tel-ik{width:42px; height:42px}
+}
+@media (max-width:860px){
+  .ust-ic{gap:10px}
+  .menu{margin-inline:0}
+  .ust-ara{margin-left:auto}
+  .ust-tel{display:none}          /* mobilde sabit alt çubukta zaten var */
+}
