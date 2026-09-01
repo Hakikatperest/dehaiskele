@@ -1101,3 +1101,61 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 @media (max-width:1120px){body.kaydi .ust{--ust-h:92px} body.kaydi .logo-im{height:66px}}
 @media (max-width:860px){body.kaydi .ust{--ust-h:86px} body.kaydi .logo-im{height:66px}}
 @media (max-width:400px){body.kaydi .ust{--ust-h:78px} body.kaydi .logo-im{height:58px}}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ALT BİLGİ — yeniden (2026-09-01, kullanıcı: "kutu içinde gibi olmasın,
+   tam sayfaya yayılsın, daha kurumsal olsun, siyah olmasın")
+   Koyu yuvarlak kart kaldırıldı: açık zemin, tam genişlik, koyu metin.
+   ⚠️ Logo artık KOYU varyant (açık zeminde beyaz varyant görünmez).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.alt{background:#eef1f5; padding:0; border-top:3px solid var(--tur); color:var(--ink-2)}
+.alt>.kap{background:none; border:0; border-radius:0; box-shadow:none;
+  padding:clamp(34px,4vw,54px) 0 22px; width:min(100% - 34px,var(--kap))}
+.alt>.kap::before{display:none}
+.alt h3{color:var(--koyu); font-size:.92rem; letter-spacing:.01em;
+  text-transform:uppercase; margin-bottom:15px}
+.alt h3::after{background:var(--tur); width:22px}
+.alt-marka p{color:var(--ink-2); font-size:.93rem}
+.alt-ust{border-bottom:1px solid #dde2e9}
+.alt a:not(.dg):not(.logo-bag):not(.w4-ad){color:#48525f}
+.alt a:not(.dg):not(.logo-bag):not(.w4-ad):hover{color:var(--tur-koyu)}
+.alt .adres{color:var(--ink-2)}
+.alt-saat strong{color:var(--tur-koyu)}
+.alt-saat span{color:var(--ink-3)}
+.alt-ilceler{border-bottom:1px solid #dde2e9}
+.ilce-agi{color:var(--ink-3)}
+.ilce-agi a:hover{color:var(--tur-koyu)}
+.alt-son{color:var(--ink-3); border-top:0}
+.alt-tumu a{color:var(--tur-koyu) !important}
+/* Tanıtım PDF rozeti açık zemine göre */
+.alt .alt-pdf-bag{background:#fff; border:1px solid #dde2e9; color:#48525f}
+.alt .alt-pdf-bag:hover{background:#fff; border-color:var(--tur); color:var(--tur-koyu)}
+
+/* ⚠️ Web4Medya imzası açık zemine taşındı: --w4-mavi (#4d90ff) koyu zemin içindi,
+   açık zeminde okunmuyor → markanın kendi mavisi #0B57D0 kullanılıyor.
+   Bağlantı yine YALNIZCA marka adını sarıyor. */
+.alt .w4-bag{background:#fff; border:1px solid #dde2e9}
+.alt .w4-bag::before{background:linear-gradient(90deg,transparent,rgba(0,0,0,.08),transparent)}
+.alt .w4-etiket{color:var(--ink-3)}
+.alt .w4-ad{color:var(--koyu)}
+.alt .w4-d{color:#0b57d0; text-shadow:none}
+.alt .w4-ad::after{background:#0b57d0}
+.alt .w4-ad:hover{color:var(--koyu)}
+.alt .w4-bag:has(.w4-ad:hover){border-color:rgba(11,87,208,.4)}
+
+@media (max-width:860px){
+  .alt{padding:0 0 88px}
+  .alt>.kap{width:min(100% - 30px,var(--kap)); padding:28px 0 18px; border-top:0}
+}
+
+/* ⚠️ Titreşim düzeltmesindeki `body.kaydi .logo-im` kuralları ÜST BAR için;
+   aynı özgüllükte oldukları için ALT BİLGİ logosunu da küçültüyorlardı
+   (208px yerine 65px render oluyordu — scale(.86) + height ezmesi).
+   Alt bilgi logosu kaydırma durumundan bağımsız. */
+.alt .logo-im,body.kaydi .alt .logo-im{height:208px; transform:none; max-width:100%}
+@media (max-width:860px){
+  .alt .logo-im,body.kaydi .alt .logo-im{height:150px}
+}
+@media (max-width:400px){
+  .alt .logo-im,body.kaydi .alt .logo-im{height:120px}
+}

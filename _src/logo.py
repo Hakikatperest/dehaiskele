@@ -78,7 +78,7 @@ def main():
     print(f"kaynak kırpıldı: {im.size[0]}×{im.size[1]}")
     ak = acik_varyant(im)
     uretilen = []
-    for boy in (200, 320, 480):
+    for boy in (200, 320, 480, 680):
         uretilen.append(kaydet(im, "deha-logo", boy))
         uretilen.append(kaydet(ak, "deha-logo-ak", boy))
 
