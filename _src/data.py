@@ -42,10 +42,17 @@ SITE = {
 # Sitede geçmesine İZİN VERİLEN iddialar. ⚠️ Bu listeye kullanıcı onayı olmadan
 # yeni madde EKLEME (emsal: seyrannakliyat'ta aynı kural konuldu).
 ONAYLI_IDDIALAR = [
-    "İstanbul'un tüm ilçelerine hizmet",      # kullanıcı 2026-09-01'de yazılı verdi
+    "İstanbul'un tüm ilçelerine hizmet",   # 2026-09-01, yazılı
+    "7/24 hizmet",                         # 2026-09-01, kullanıcı teyit etti
+    "sigortalı çalışma",                   # 2026-09-01, kullanıcı teyit etti
+    "ücretsiz keşif",                      # 2026-09-01, kullanıcı teyit etti
 ]
-# ⏳ Teyit bekleyen iddialar (kullanıcı onaylamadan sayfaya GİRMEZ):
-#    tecrübe yılı · sigorta · TSE/CE belgesi · İSG sertifikası · 7/24 · ücretsiz keşif
+# ⏳ HÂLÂ teyit bekleyen (sayfaya GİRMEZ): tecrübe yılı · TSE/CE belgesi · İSG sertifikası ·
+#    depozito şartları · indirimli paket · saatlik/günlük kiralama
+# ⛔ "en iyi", "bir numara", "lider" gibi ÜSTÜNLÜK İDDİASI YAZILMAZ. Kullanıcı örnek
+#    metinde "Avcılar'ın en iyi firması" yazmıştı; Ticari Reklam ve Haksız Ticari
+#    Uygulamalar Yönetmeliği ispatlanamayan üstünlük iddiasını yasaklıyor, Reklam Kurulu
+#    ceza kesiyor. Kullanıcı 2026-09-01'de bu maddeyi seçmedi.
 
 FIYAT_GUNCELLEME = None       # ⏳ PLACEHOLDER (ör. "Eylül 2026")
 FIYATLAR = []                 # ⏳ PLACEHOLDER — m²/ay kira, kurulum, söküm, nakliye
@@ -304,8 +311,8 @@ TURLER = [
              "Levha ve sıva torbası platformda duracağı için taşıma kapasitesi buna göre seçilir.",
          ],
          sinir="Boşluk yanlış hesaplanırsa iş ortasında iskeleyi kaydırmak gerekir; keşifte kalınlık netleşmeli."),
-    dict(slug="boya-badana-iskelesi", ad="Boya ve Badana İskelesi",
-         h1="Boya ve Badana İskelesi Kiralama",
+    dict(slug="boya-badana-iskelesi", ad="Boya ve Bakım İskelesi",
+         h1="Boya ve Bakım İskelesi Kiralama",
          ozet="Dış cephe boyası için kurulan, genellikle kısa süreli cephe iskelesi.",
          kimin="Apartman dış cephe boyası, sıva onarımı ve derz yenileme işleri",
          teknik=[
@@ -335,8 +342,8 @@ TURLER = [
              "Açık alanda rüzgâr, balast ve ankraj planını doğrudan belirler.",
          ],
          sinir="Etkinlik iskelesi cephe iskelesiyle aynı hesap değildir; yük ve süre baştan netleşmeli."),
-    dict(slug="asansorlu-iskele", ad="Cephe Asansörü ve Askılı Platform",
-         h1="Cephe Asansörü ve Askılı Platform",
+    dict(slug="asansorlu-iskele", ad="Asma İskele (Askılı Platform)",
+         h1="Asma İskele ve Cephe Asansörü Kiralama",
          ozet="Yüksek bloklarda cepheyi baştan aşağı iskeleyle kaplamak yerine, çatıdan askıya "
                "alınan hareketli platformla çalışma.",
          kimin="Rezidans, plaza ve yüksek katlı bloklarda cephe temizliği, boya ve cam işleri",
@@ -824,3 +831,121 @@ ILCE_EK = {
  "uskudar":      ("'da", "'a",   "'ın",   "'dan"),
  "zeytinburnu":  ("'nda","'na",  "'nun",  "'ndan"),
 }
+
+# ── Kullanıcının 2026-09-01'de verdiği tür listesinden eklenenler ─────────────
+# ⚠️ Mevcut 8 türün slug'ları KORUNDU (site canlı, URL kırılmasın).
+TURLER += [
+    dict(slug="h-tipi-iskele", ad="H Tipi İskele",
+         h1="H Tipi İskele Kiralama",
+         ozet="Çerçeve sistemli, üst üste geçmeli en yaygın cephe iskelesi. Hızlı kurulur, "
+               "hızlı sökülür.",
+         kimin="Apartman ve site cepheleri, boya-sıva-mantolama işleri, düşük ve orta katlı yapılar",
+         teknik=[
+             "İki dikme ile yatay bağlantının kaynaklı olduğu H şeklindeki çerçeveler üst üste geçirilir.",
+             "Parça sayısı az ve standart olduğu için kurulum hızı yüksektir.",
+             "Cepheye bağlantı ve çapraz elemanlar olmadan çerçeve tek başına yeterli değildir.",
+         ],
+         sinir="Düzensiz cephede, çıkmalı geometride ve ağır yükte zorlanır; orada flanşlı, "
+               "kamalı veya Cuplock sisteme geçilir."),
+    dict(slug="flansli-iskele", ad="Flanşlı İskele",
+         h1="Flanşlı İskele Kiralama",
+         ozet="Dikmelere kaynaklı flanş (rozet) disklerine yatay ve çapraz elemanların "
+               "bağlandığı modüler sistem.",
+         kimin="Düzensiz cepheler, endüstriyel tesisler, çıkma ve kademe içeren yapılar",
+         teknik=[
+             "Flanş üzerindeki delikler sayesinde tek noktadan birden çok yöne bağlantı yapılabilir.",
+             "Açı serbestliği yüksek olduğu için dairesel ve kırık hatlı cephelere uyar.",
+             "Bağlantılar kama ile sıkıştırılır; montaj sırasında her kama tam oturmalıdır.",
+         ],
+         sinir="Malzeme ve işçilik maliyeti H tipi çerçeve iskeleden yüksektir; düz ve alçak "
+               "cephede gereksiz masraf olur."),
+    dict(slug="kamali-iskele", ad="Kamalı İskele",
+         h1="Kamalı İskele Kiralama",
+         ozet="Kama bağlantılarıyla çekiç darbesiyle kilitlenen, hızlı kurulup sökülen "
+               "modüler iskele sistemi.",
+         kimin="Süre baskısı olan şantiyeler, tekrarlı kurulum-söküm gerektiren işler",
+         teknik=[
+             "Bağlantı kaması çekiçle vurularak sıkıştırılır; ayrı cıvata ve somun gerekmez.",
+             "Kurulum-söküm hızı yüksek olduğu için kısa süreli işlerde işçilik kalemini düşürür.",
+             "Kamaların tam oturduğu montaj sırasında tek tek kontrol edilir.",
+         ],
+         sinir="Kama yuvaları hasarlıysa bağlantı güvenliği düşer; yıpranmış malzemeyle "
+               "kurulmamalıdır."),
+    dict(slug="cuplock-iskele", ad="Cuplock İskele",
+         h1="Cuplock İskele Kiralama",
+         ozet="Dikmedeki alt ve üst çanak (kupa) sistemiyle dört yatay elemanın tek noktada "
+               "kilitlendiği modüler sistem.",
+         kimin="Betonarme kalıp desteği, yüksek yük taşıyan kurulumlar, endüstriyel yapılar",
+         teknik=[
+             "Yatay elemanların uçları alt kupaya oturur, üst kupa çevrilerek dördü birden kilitlenir.",
+             "Tek düğümde dört yönlü bağlantı sağladığı için ızgara kurulumlarda hızlıdır.",
+             "Yük aktarımı doğrudan dikme ekseninden olduğu için taşıma kapasitesi yüksektir.",
+         ],
+         sinir="Serbest açılı geometride flanşlı sistem kadar esnek değildir; kupalar 90 derecelik "
+               "düzene bağlıdır."),
+    dict(slug="masa-iskele", ad="Masa İskele",
+         h1="Masa İskele (Masa Kalıp) Kiralama",
+         ozet="Döşeme betonu için kalıp ve taşıyıcının birlikte kurulduğu, kat kat taşınabilen "
+               "hazır masa üniteleri.",
+         kimin="Geniş döşemeli betonarme projeler, çok katlı yapıların kaba inşaatı",
+         teknik=[
+             "Kalıp ve altındaki taşıyıcı tek ünite olarak kurulur; beton priz aldıktan sonra bütün hâlde alınır.",
+             "Aynı kat planı tekrar ediyorsa üst katlara taşınarak kullanılır, bu da süreyi ciddi kısaltır.",
+             "Taşıma ve konumlandırma vinç gerektirir; şantiyede vinç programı buna göre yapılır.",
+         ],
+         sinir="Kat planı her katta değişen projelerde avantajını kaybeder; küçük döşemelerde "
+               "kurulum maliyeti karşılamaz."),
+    dict(slug="kalip-alti-iskelesi", ad="Kalıp Altı İskelesi",
+         h1="Kalıp Altı İskelesi ve Teleskopik Dikme Kiralama",
+         ozet="Betonarme döşeme ve kirişlerin kalıbını, beton priz alana kadar taşıyan destek "
+               "sistemi.",
+         kimin="Kaba inşaat, döşeme ve kiriş betonu, kat betonu dökümü",
+         teknik=[
+             "Taşıyacağı yük taze beton, kalıp ve işçi yükünün toplamıdır; kapasite buna göre seçilir.",
+             "Teleskopik dikmeler iç içe geçen iki borudan oluşur, vida ayarıyla kat yüksekliğine getirilir.",
+             "Destekler beton yeterli dayanımı alana kadar sökülmez; erken söküm en tehlikeli hatalardan biridir.",
+         ],
+         sinir="Cephe işi için uygun değildir; bu sistem yatay yükü değil düşey kalıp yükünü taşır."),
+    dict(slug="mobil-iskele", ad="Mobil İskele",
+         h1="Mobil İskele Kiralama",
+         ozet="Tekerlekli yapısı sayesinde çalışma noktaları arasında itilerek taşınabilen "
+               "hafif iskele.",
+         kimin="İç mekân tadilatı, tavan ve aydınlatma işleri, tabela montajı, depo ve mağaza bakımı",
+         teknik=[
+             "Tekerlekler frenlenmeden ve ayarlı ayaklar oturtulmadan platforma çıkılmaz.",
+             "Yükseklik arttıkça devrilme riski büyür; gerekli olduğunda denge ayakları takılır.",
+             "Üzerinde insan ya da malzeme varken iskele ASLA hareket ettirilmez.",
+         ],
+         sinir="Bina cephesinin tamamı için uygun değildir; sürekli yer değiştirmek zaman kaybı olur."),
+    dict(slug="merdivenli-iskele", ad="Merdivenli İskele",
+         h1="Merdivenli İskele Kiralama",
+         ozet="Katlar arasında güvenli geçiş için merdiven kulesi bulunan iskele düzeni.",
+         kimin="Yüksek iskeleler, uzun süreli şantiyeler, çok kişinin çalıştığı cepheler",
+         teknik=[
+             "Merdiven kulesi iskeleye entegre kurulur; çalışanlar dikmeye tırmanmak zorunda kalmaz.",
+             "Malzemenin de merdivenden taşınacağı düşünülerek genişlik ve sahanlık planlanır.",
+             "Merdiven boşlukları korkuluk ve kapaklarla kapatılır.",
+         ],
+         sinir="Ek malzeme ve alan gerektirir; tek katlı, kısa süreli işlerde gereksiz kalır."),
+    dict(slug="konsol-iskele", ad="Konsol İskele",
+         h1="Konsol İskele Kiralama",
+         ozet="Zemine basmadan, yapıdan dışarı uzatılan konsollar üzerine kurulan iskele.",
+         kimin="Bitişik nizam binalar, sokağın kapatılamadığı cepheler, üst katlarda kısmi çalışma",
+         teknik=[
+             "Konsol kirişleri yapı içinden ankrajlanır; taşıma hesabı kurulum öncesi yapılır.",
+             "Zemin kullanılmadığı için yaya ve araç geçişi açık kalır.",
+             "Yapıya aktarılan yük noktasal olduğundan bağlantı noktalarının uygunluğu şarttır.",
+         ],
+         sinir="Her yapıya kurulamaz; ankraj yapılacak taşıyıcı eleman ve iç mekân erişimi gerekir."),
+    dict(slug="endustriyel-iskele", ad="Endüstriyel İskele",
+         h1="Endüstriyel İskele Kiralama",
+         ozet="Fabrika, enerji tesisi, rafineri ve büyük tesislerde kullanılan ağır hizmet "
+               "iskele sistemleri.",
+         kimin="Sanayi tesisleri, tersaneler, enerji santralleri, bakım-duruş çalışmaları",
+         teknik=[
+             "Geometri çoğu zaman düzensizdir; boru, tank ve makine etrafına özel kurulum gerekir.",
+             "Taşıma sınıfı, bağlantı planı ve kurulum sırası yazılı olarak belirlenir.",
+             "Tesis kendi iş güvenliği prosedürünü uygular; çalışma izni ve denetim süreci işin parçasıdır.",
+         ],
+         sinir="Konut cephesi için gereğinden ağır ve pahalı bir çözümdür."),
+]

@@ -63,6 +63,12 @@ KOMSU = komsuluk_kur()
 # ── Türkçe ek ────────────────────────────────────────────────────────────────
 # ⛔ Kod içinde "{ad}'da" gibi elle ek YAZMA. Ünlü uyumu + kaynaştırma harfi
 #    ilçeye göre değişiyor (Beşiktaş'ta, Beylikdüzü'nde, Ümraniye'de).
+
+def kucuk(s):
+    """⚠️ Türkçe küçük harf. Python'un .lower()'ı 'İ' harfini 'i̇' (i + birleşen nokta)
+    yapıyor; anchor metinlerinde 'i̇skele' diye bozuk çıkıyordu."""
+    return s.replace("İ", "i").replace("I", "ı").lower()
+
 def ek(i, hal="loc"):
     """i: ilçe dict'i (veya slug). hal: loc(-de) / dat(-e) / gen(-in) / abl(-den)"""
     slug = i if isinstance(i, str) else i["slug"]
@@ -605,7 +611,9 @@ def ilce_sss(i):
          "Keşifte cepheyi ölçüyoruz, zemini ve aracın yanaşacağı yeri görüyoruz. Ölçü almadan "
          "verilen rakam ya size fazla ya bize eksik geliyor; o yüzden önce yerinde bakıyoruz."),
         (f"{ek(i)} iskele ne kadar sürede kuruluyor?",
-         f"{i['vurgu'].split(';')[0].strip().capitalize()}. Normal bir apartman cephesinde kurulum "
+         # ⚠️ .capitalize() KULLANMA: tüm metni küçültüyor ve "İskelenin" → "i̇skelenin"
+         #    oluyor (Python'un Türkçe bilmeyen lower'ı). Vurgu zaten büyük harfle başlıyor.
+         f"{i['vurgu'].split(';')[0].strip()}. Normal bir apartman cephesinde kurulum "
          "çoğunlukla bir gün sürüyor; yüksek bloklarda ve zor erişimli sokaklarda bu süre uzayabiliyor. "
          "Kurulum gününü baştan söylüyoruz ki bina da kendi işini ona göre planlasın."),
         (f"İskele {ek(i)} ne kadar süre kalabilir?",
@@ -670,6 +678,7 @@ def ilce_sayfasi(i):
             parcalar.append(f'  <ul class="ok-liste">{oneri_ln}</ul>')
     h2_bloklari = "".join(parcalar)
     h3_blok = ilce_h3_blok(i)
+    tur_bolumu = ilce_tur_bolumu(i)
 
     return head(baslik, aciklama, yol, sema) + ust_header() + f"""
 {kirinti([("Ana Sayfa", "/"), ("İlçeler", "/#ilceler"), (ad, None)])}
@@ -687,6 +696,7 @@ def ilce_sayfasi(i):
 
 <section class="bol"><div class="kap dar metin">{h2_bloklari}
 {h3_blok}
+{tur_bolumu}
   <p>{ana_link_c}</p>
 </div></section>
 
@@ -705,6 +715,90 @@ def ilce_sayfasi(i):
 </main>
 {alt_bilgi()}"""
 
+
+# ── İlçe sayfasındaki tür bölümü + örümcek ağı ──────────────────────────────
+# Kullanıcı 2026-09-01'de 39×15 = 585 ayrı sayfa istedi; risk tablosu sunuldu
+# (ölçeklendirilmiş içerik + 585 kopya metin) ve **bu yapı seçildi**: türler ilçe
+# sayfasının içinde H3 bölümleri olarak duruyor, çapraz linkler ilçe+tür anchor'ıyla
+# veriliyor. ⛔ Tekrar 585 sayfaya çıkarma isteği gelirse bu kararı hatırlat.
+
+def tur_tanitim(t, i, uzun):
+    """Bir türün ilçe sayfasındaki tanıtımı. uzun=True → kullanıcının örnek metni
+    tarzında tam tanıtım; False → iki cümle + link."""
+    ad, yer = t["ad"], ek(i)
+    if not uzun:
+        return (f'<p>{e(t["ozet"])} '
+                f'<a href="/{t["slug"]}/">{e(t["ad"])} sayfasında</a> ayrıntısını yazdım.</p>')
+    return (
+        f'<p>{e(yer)} {e(kucuk(ad))} kiralama fiyatlarını merak ediyorsanız doğru yerdesiniz :) '
+        f'{e(t["ozet"])}</p>'
+        f'<p>Bir telefon yeterli — projeyi dinleyip ölçüyü alalım, size net teklifimizi sunalım. '
+        f'Keşif ücretsiz, çalışma sigortalı ve 7/24 ulaşabiliyorsunuz. '
+        f'{e(t["kimin"])} için uygun. Sınırını da söyleyeyim: {e(kucuk(t["sinir"][:1]) + t["sinir"][1:])}</p>'
+        f'<p>Detayını <a href="/{t["slug"]}/">{e(t["ad"])}</a> sayfasında anlattım.</p>')
+
+
+def ilce_tur_bolumu(i):
+    """18 türün tamamı H3 olarak; ilçeye uyanlar tam tanıtım, kalanlar kısa.
+    Her bölümün sonunda BAŞKA bir ilçeye 'ilçe + tür' anchor'lı çapraz link var —
+    örümcek ağı bu şekilde kuruluyor, ayrı sayfa açmadan."""
+    metin = " ".join([i["doku"], i["vurgu"]]).lower()
+    def uygun(t):
+        s = t["slug"]
+        if any(x in metin for x in ("yüksek", "rezidans", "plaza", "blok", "on iki")):
+            if s in ("sistem-iskele", "asansorlu-iskele", "flansli-iskele", "merdivenli-iskele"):
+                return True
+        if any(x in metin for x in ("mantolama", "yalıtım", "güçlendirme", "dönüşüm")):
+            if s in ("mantolama-iskelesi", "cephe-iskelesi", "h-tipi-iskele"):
+                return True
+        if any(x in metin for x in ("depo", "fabrika", "imalathane", "sanayi", "tersane", "liman")):
+            if s in ("endustriyel-iskele", "mobil-iskele", "kalip-alti-iskelesi", "cuplock-iskele"):
+                return True
+        if any(x in metin for x in ("tarihi", "dar", "bitişik", "restorasyon", "koruma")):
+            if s in ("konsol-iskele", "mobil-iskele", "asansorlu-iskele"):
+                return True
+        if any(x in metin for x in ("villa", "müstakil", "eğim", "yamaç", "bahçe")):
+            if s in ("h-tipi-iskele", "kamali-iskele", "boya-badana-iskelesi"):
+                return True
+        return s in ("cephe-iskelesi", "h-tipi-iskele")
+
+    # çapraz link için komşular + graf uzağındaki ilçeler karıştırılıyor
+    komsular = [ILCE[k] for k in KOMSU.get(i["slug"], []) if k in ILCE]
+    hepsi = [x for x in D.ILCELER if x["slug"] != i["slug"]]
+    baslangic = D.ILCELER.index(i)
+
+    parcalar = [f'\n  <h2>{e(ek(i))} Kiraladığımız İskele Çeşitleri</h2>',
+                f'<p>Aşağıda {e(ek(i, "gen"))} işlerinde en çok kurduğumuz sistemleri tek tek '
+                f'yazdım. Hangisinin sizin işinize oturduğundan emin değilseniz hiç uğraşmayın, '
+                f'arayın — keşifte binayı görüp birlikte karar veriyoruz :)</p>']
+
+    for n, t in enumerate(D.TURLER):
+        parcalar.append(f'  <h3>{e(ek(i))} {e(kucuk(t["ad"]))} kiralama</h3>')
+        parcalar.append("  " + tur_tanitim(t, i, uygun(t)))
+        # çapraz link: başka bir ilçe + başka bir tür — anchor'da ikisi birlikte
+        hedef = (komsular[n % len(komsular)] if komsular and n % 2 == 0
+                 else hepsi[(baslangic + n * 7) % len(hepsi)])
+        capraz_tur = D.TURLER[(n + 5) % len(D.TURLER)]
+        parcalar.append(
+            f'  <p class="capraz">Yakındaki ilçelerde de aynı ekip çalışıyor: '
+            f'<a href="{ilce_yolu(hedef)}">{e(ek(hedef))} {e(kucuk(capraz_tur["ad"]))} '
+            f'kiralama</a>.</p>')
+    return "\n".join(parcalar)
+
+
+def tur_ilce_agi(t):
+    """Tür sayfasından 39 ilçeye giden ağ. Anchor 'ilçe + tür' biçiminde."""
+    ln = "".join(
+        f'<li><a href="{ilce_yolu(i)}">{e(ek(i))} {e(kucuk(t["ad"]))} kiralama</a></li>'
+        for i in D.ILCELER)
+    return (f'<section class="bol ilceler"><div class="kap">'
+            f'<h2>{e(t["ad"])} Kiraladığımız İlçeler</h2>'
+            f'<p class="giris">İstanbul\'un tüm ilçelerine kurulum yapıyoruz. İlçenize ait '
+            f'sayfada o bölgede sık karşılaştığımız zemin, sokak ve yapı stoğu notlarını '
+            f'bulabilirsiniz.</p>'
+            f'<ul class="ilce-liste">{ln}</ul></div></section>')
+
+
 # ── İskele türü sayfası ─────────────────────────────────────────────────────
 def tur_sss(t):
     return [
@@ -722,6 +816,8 @@ def tur_sayfasi(t):
     yol = f'/{t["slug"]}/'
     sorular = tur_sss(t)
     baslik = f"{t['h1']} — İstanbul | {S['marka']}"
+    if len(baslik) > 70:                     # denetim sınırı; uzun adlarda kısa biçime düş
+        baslik = f"{t['ad']} Kiralama İstanbul | {S['marka']}"
     aciklama = f"{t['ozet']} İstanbul genelinde kurulum ve söküm dahil. {S['tel']}"
     sema = (isletme_semasi() + sss_semasi(sorular) +
             ldj({"@context": "https://schema.org", "@type": "Service",
@@ -770,6 +866,7 @@ def tur_sayfasi(t):
 </div></section>
 
 {sss_bolum(sorular)}
+{tur_ilce_agi(t)}
 {tur_kartlari("Diğer İskele Sistemleri", haric=t["slug"])}
 {cta_band("Hangi iskele sizin işinize uyar?",
           "İşi ve binayı anlatın, uygun sistemi birlikte seçelim. Keşif için ölçüyü yerinde alıyoruz.")}

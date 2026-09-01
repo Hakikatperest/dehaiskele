@@ -15,11 +15,13 @@ DIS_BEYAZ = {"dehaiskele.com", "www.dehaiskele.com",   # kendi alan adı (canoni
             "wa.me", "www.google.com", "maps.google.com", "www.web4medya.com"}
 
 # ⏳ Kullanıcı onaylamadan sayfaya girmemesi gereken iddialar.
+# 7/24 · sigortalı · ücretsiz keşif → kullanıcı 2026-09-01'de TEYİT ETTİ, listeden çıktı.
 YASAK_IDDIA = [
-    "sigortalı", "sigorta kapsamında", "7/24", "24 saat", "sertifikalı",
-    "TSE belgeli", "CE belgeli", "yıllık tecrübe", "yıllık deneyim",
-    "depozitosuz", "indirimli paket", "kampanya", "ücretsiz keşif",
+    "sertifikalı", "TSE belgeli", "CE belgeli", "yıllık tecrübe", "yıllık deneyim",
+    "depozitosuz", "indirimli paket", "kampanya",
 ]
+# ⛔ Üstünlük iddiası — Ticari Reklam Yönetmeliği gereği ispat istiyor, yazılmaz.
+YASAK_USTUNLUK = ["en iyi", "en kaliteli", "bir numara", "lider firma", "türkiye'nin en"]
 
 sayfalar, hata, uyari = [], [], []
 for kok, _, dosyalar in os.walk(KOK):
@@ -72,6 +74,9 @@ for s in sorted(sayfalar):
     for kelime in YASAK_IDDIA:
         if kelime in govde:
             uyari.append(f"TEYİTSİZ İDDİA '{kelime}'  {rel}")
+    for kelime in YASAK_USTUNLUK:
+        if kelime in govde:
+            hata.append(f"ÜSTÜNLÜK İDDİASI '{kelime}'  {rel}")
 
 for b, n in basliklar.items():
     if n > 1: hata.append(f"TEKRAR TITLE ×{n}: {b[:70]}")
