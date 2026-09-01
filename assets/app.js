@@ -104,3 +104,29 @@
     });
   });
 })();
+
+/* PDF facade — gömülü görüntüleyici ancak tıklanınca yükleniyor.
+   ⚠️ iOS Safari gömülü PDF'i düzgün göstermiyor; orada yeni sekmede açıyoruz. */
+(function () {
+  "use strict";
+  document.querySelectorAll(".pdf-kutu").forEach(function (kutu) {
+    var dg = kutu.querySelector(".pdf-ac");
+    if (!dg) return;
+    dg.addEventListener("click", function () {
+      var src = kutu.getAttribute("data-pdf");
+      var ios = /iP(hone|ad|od)/.test(navigator.userAgent);
+      if (ios) { window.open(src, "_blank", "noopener"); return; }
+      var o = document.createElement("object");
+      o.data = src; o.type = "application/pdf";
+      o.setAttribute("aria-label", "Deha İskele firma tanıtım dosyası");
+      var yedek = document.createElement("p");
+      yedek.className = "pdf-yedek";
+      yedek.innerHTML = 'Tarayıcınız gömülü PDF göstermiyor. ' +
+        '<a href="' + src + '" target="_blank" rel="noopener">Dosyayı yeni sekmede açın</a>.';
+      o.appendChild(yedek);
+      kutu.classList.add("acik");
+      kutu.innerHTML = "";
+      kutu.appendChild(o);
+    });
+  });
+})();

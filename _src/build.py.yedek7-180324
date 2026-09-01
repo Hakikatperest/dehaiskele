@@ -180,7 +180,6 @@ def logo(koyu_zemin=True):
 
 MENU = [
     ("/", "Ana Sayfa"),
-    ("/hakkimizda/", "Hakkımızda"),
     ("/iskele-cesitleri/", "İskele Çeşitleri"),
     ("/iskele-kiralama-fiyatlari/", "Fiyatlar"),
     ("/iskele-is-guvenligi/", "İş Güvenliği"),
@@ -1028,7 +1027,6 @@ def anasayfa():
   </ol>
 </div></section>
 
-{tanitim_bolum()}
 {sss_bolum(ANA_SSS)}
 {harita_bolum()}
 {ilce_agi()}
@@ -1379,145 +1377,6 @@ def rehber_sayfasi(r):
 </main>
 {alt_bilgi()}"""
 
-
-# ── Firma tanıtım PDF'i ─────────────────────────────────────────────────────
-# ⚠️ PDF DOM'a ancak tıklanınca giriyor (harita ile aynı facade deseni).
-#    2,6 MB'lık dosyayı ilk yükte indirmek sayfa hızını — yani gerçek bir sıralama
-#    sinyalini — bozardı. Gömülü PDF'in kendisi SEO'ya değer AKTARMAZ; asıl değer
-#    aynı içeriğin HTML hâli olan /hakkimizda/ sayfasında.
-#    Ayrıca iOS Safari gömülü PDF'i düzgün göstermediği için "yeni sekmede aç"
-#    bağlantısı her zaman görünür duruyor.
-def tanitim_bolum(baslik="Firma Tanıtımımız"):
-    kapak = gorsel("deha-iskele-tanitim-kapak",
-                   "Deha İskele firma tanıtım dosyasının kapak sayfası",
-                   boy="(min-width:1000px) 620px, 100vw")
-    return f"""<section class="bol tanitim" id="tanitim"><div class="kap">
-  <h2>{e(baslik)}</h2>
-  <p class="giris">Firmamızı, iskele türlerimizi ve hizmet kapsamımızı anlattığımız tanıtım
-     dosyamız. Aşağıdan sayfa sayfa inceleyebilir, dilerseniz indirebilirsiniz.</p>
-  <div class="tanitim-kutu">
-    <div class="pdf-kutu" data-pdf="{e(D.TANITIM_PDF)}">
-      <button type="button" class="pdf-ac">{kapak}
-        <span class="pdf-rozet">Tanıtımı aç <small>PDF · {e(D.TANITIM_PDF_BOYUT)}</small></span>
-      </button>
-    </div>
-    <div class="tanitim-yan">
-      <ul class="ok-liste">
-        <li><strong>10 yılı aşkın</strong> saha deneyimi</li>
-        <li>18 farklı iskele sistemi, tek firmadan</li>
-        <li>Kurulum, söküm ve teknik destek dahil</li>
-        <li>Günlük, haftalık ve aylık kiralama</li>
-      </ul>
-      <div class="dg-grup">
-        <a class="dg dg-sari" href="/hakkimizda/">Hakkımızda sayfası</a>
-        <a class="dg dg-hat2" href="{e(D.TANITIM_PDF)}" target="_blank" rel="noopener">
-          <span>PDF'i yeni sekmede aç</span></a>
-      </div>
-    </div>
-  </div>
-</div></section>"""
-
-
-# ── Hakkımızda sayfası ──────────────────────────────────────────────────────
-# Tanıtım PDF'inin HTML karşılığı. ⚠️ Asıl SEO değeri burada: PDF indekslense bile
-# gömülü hâli anasayfaya değer aktarmıyor, HTML sayfa aktarıyor.
-# Hedef niyet: marka araması ("deha iskele kimdir", "istanbul iskele firması").
-HAKKIMIZDA_SSS = [
-    ("Deha İskele ne kadar süredir bu işi yapıyor?",
-     "10 yılı aşkın süredir İstanbul'da iskele kiralama işindeyiz. Bu sürede apartman "
-     "cephesinden fabrika bakımına, tarihi yapı restorasyonundan etkinlik sahnesine kadar "
-     "çok farklı iş gördük."),
-    ("Hangi iskele sistemlerini kiralıyorsunuz?",
-     "18 farklı sistem: cephe, H tipi, flanşlı, kamalı, Cuplock, sistem (modüler), masa, "
-     "kalıp altı, mobil, kule, merdivenli, konsol, asma, endüstriyel, mantolama, boya-bakım, "
-     "çatı ve sahne iskelesi. Hangisinin işinize oturduğunu keşifte birlikte belirliyoruz."),
-    ("Kurulum ve sökümü siz mi yapıyorsunuz?",
-     "Evet, ikisi de bize ait. Malzemeyi bırakıp gitmiyoruz; ekibimiz kuruyor, iş bitince "
-     "söküp götürüyor. Depolama, taşıma ve bakım sizin derdiniz olmuyor."),
-    ("Sigorta güvencesi var mı?",
-     "Var. Kiralama süresince kapsamlı sigorta güvencesiyle çalışıyoruz."),
-    ("Nerede bulunuyorsunuz, hangi bölgelere geliyorsunuz?",
-     "Depomuz Eyüpsultan'da. İstanbul'un tüm ilçelerine — Avrupa ve Anadolu yakasının "
-     "tamamına — kurulum yapıyoruz."),
-]
-
-def hakkimizda_sayfasi():
-    yol = "/hakkimizda/"
-    baslik = f"Hakkımızda — {S['marka']} | İstanbul İskele Kiralama"
-    aciklama = ("Deha İskele: 10 yılı aşkın deneyimle İstanbul genelinde iskele kiralama, "
-                "kurulum ve söküm. 18 iskele sistemi, sigorta güvencesi, 7/24 teknik destek.")
-    sema = (isletme_semasi() + sss_semasi(HAKKIMIZDA_SSS) +
-            ldj({"@context": "https://schema.org", "@type": "AboutPage",
-                 "name": baslik, "url": ALAN + yol,
-                 "mainEntity": {"@id": ALAN + "/#isletme"}}))
-    donem = "".join(f'<div class="donem"><h3>{e(a)}</h3><p>{e(b)}</p></div>'
-                    for a, b in D.KIRALAMA_DONEMLERI)
-    tur_ln = "".join(f'<li><a href="/{t["slug"]}/">{e(t["ad"])}</a></li>' for t in D.TURLER)
-    return head(baslik, aciklama, yol, sema) + ust_header(aktif=yol) + f"""
-{kirinti([("Ana Sayfa", "/"), ("Hakkımızda", None)])}
-<main id="ana">
-<section class="hero hero-ic">
-  <div class="kap">
-    {hero_h1(["Deha İskele Hakkında"])}
-    <p class="hero-alt">İstanbul'da 10 yılı aşkın süredir iskele kiralıyoruz. Kurulumdan
-       sökümüne kadar işin tamamı bizde; siz sadece kendi işinize bakıyorsunuz.</p>
-    <div class="dg-grup">{tel_btn()}{tel2_btn()}{wa_btn()}</div>
-  </div>
-</section>
-
-{guven_seridi()}
-
-<section class="bol"><div class="kap">{vitrin("istanbul-iskele-firmasi", oncelik=True)}</div></section>
-
-<section class="bol"><div class="kap dar metin">
-  <h2>Biz Kimiz?</h2>
-  <p>Deha İskele olarak <strong>10 yılı aşkın sektör deneyimiyle</strong> İstanbul genelinde
-     iskele kiralama hizmeti veriyoruz. Depomuz Eyüpsultan'da; ekip iki yakaya da aynı yerden
-     çıkıyor.</p>
-  <p>Bu işte uzun süre kalmanın bir avantajı var: aynı ölçüdeki iki binanın neden aynı kurulumu
-     istemediğini artık keşfe gitmeden tahmin edebiliyoruz :) Dar sokak, eğimli bahçe, bitişik
-     nizam, otopark üstü zemin — bunların her biri iskeleyi baştan değiştiriyor. O yüzden
-     telefonda kesin fiyat vermek yerine gelip bakmayı tercih ediyoruz.</p>
-
-  <h2>Neden Deha İskele?</h2>
-  <ul class="ok-liste">
-    <li><strong>Kurulum ve söküm bizde.</strong> Malzemeyi kapınıza bırakıp gitmiyoruz.
-        Ekibimiz kuruyor, iş bitince söküp götürüyor.</li>
-    <li><strong>Sigorta güvencesi.</strong> Kiralama süresince kapsamlı sigorta kapsamıyla
-        çalışıyoruz.</li>
-    <li><strong>7/24 teknik destek.</strong> Bir parça gevşediyse, fırtınadan sonra bir şey
-        oynadıysa arayın — geliyoruz.</li>
-    <li><strong>Esnek kiralama.</strong> Günlük, haftalık ve aylık seçenekler; iş ne kadar
-        sürüyorsa o kadar ödüyorsunuz.</li>
-    <li><strong>Her ölçekte iş.</strong> Küçük bir balkon onarımından fabrika bakımına kadar.</li>
-  </ul>
-
-  <h2>Kiralama Dönemlerimiz</h2>
-</div>
-<div class="kap"><div class="izgara-3">{donem}</div></div></section>
-
-<section class="bol"><div class="kap dar metin">
-  <h2>Kiraladığımız İskele Sistemleri</h2>
-  <p>18 farklı sistem var ve hepsi ayrı bir işe oturuyor. Hangisinin sizin işinize uyduğundan
-     emin değilseniz <a href="/iskele-cesitleri/">iskele çeşitleri</a> sayfasındaki
-     karşılaştırma tablosuna bakabilir ya da doğrudan arayabilirsiniz.</p>
-  <ul class="ilce-liste">{tur_ln}</ul>
-
-  <h2>Nerelere Geliyoruz?</h2>
-  <p>İstanbul'un <a href="/#ilceler">tüm ilçelerine</a> — Avrupa ve Anadolu yakasının tamamına.
-     İlçenize ait sayfada o bölgede sık karşılaştığımız zemin, sokak ve yapı stoğu notlarını
-     bulabilirsiniz.</p>
-  <p>{ana_link("Genel hizmet kapsamımız için %s sayfamıza bakabilirsiniz.")}</p>
-</div></section>
-
-{tanitim_bolum("Tanıtım Dosyamız")}
-{sss_bolum(HAKKIMIZDA_SSS, "Deha İskele Hakkında Sık Sorulanlar")}
-{harita_bolum()}
-{cta_band("Cephenizi ölçelim, net konuşalım",
-          "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
-</main>
-{alt_bilgi()}"""
-
 # ── Yazıcı ──────────────────────────────────────────────────────────────────
 def yaz(yol, ic):
     if yol == "/":
@@ -1572,7 +1431,6 @@ def main():
         yaz(f'/{t["slug"]}/', tur_sayfasi(t)); yollar.append((f'/{t["slug"]}/', "0.9"))
     for r in D.REHBERLER:
         yaz(f'/{r["slug"]}/', rehber_sayfasi(r)); yollar.append((f'/{r["slug"]}/', "0.7"))
-    yaz("/hakkimizda/", hakkimizda_sayfasi()); yollar.append(("/hakkimizda/", "0.9"))
     yaz("/404.html", hata404())
 
     with open(os.path.join(KOK, "sitemap.xml"), "w", encoding="utf-8") as f:
