@@ -17,7 +17,7 @@ DIS_BEYAZ = {"dehaiskele.com", "www.dehaiskele.com",   # kendi alan adı (canoni
 # ⏳ Kullanıcı onaylamadan sayfaya girmemesi gereken iddialar.
 # 7/24 · sigortalı · ücretsiz keşif → kullanıcı 2026-09-01'de TEYİT ETTİ, listeden çıktı.
 YASAK_IDDIA = [
-    "sertifikalı", "TSE belgeli", "CE belgeli", "yıllık tecrübe", "yıllık deneyim",
+    "sertifikalı", "TSE belgeli", "CE belgeli",   # 10+ yıl deneyim PDF ile teyitli, çıkarıldı
     "depozitosuz", "indirimli paket", "kampanya",
 ]
 # ⛔ Üstünlük iddiası — Ticari Reklam Yönetmeliği gereği ispat istiyor, yazılmaz.

@@ -46,31 +46,12 @@ SITE = {
 # yeni madde EKLEME (emsal: seyrannakliyat'ta aynı kural konuldu).
 ONAYLI_IDDIALAR = [
     "İstanbul'un tüm ilçelerine hizmet",   # 2026-09-01, yazılı
-    "7/24 teknik destek",                  # 2026-09-01 + firma tanıtım PDF'i
-    "kapsamlı sigorta güvencesi",          # 2026-09-01 + firma tanıtım PDF'i
+    "7/24 hizmet",                         # 2026-09-01, kullanıcı teyit etti
+    "sigortalı çalışma",                   # 2026-09-01, kullanıcı teyit etti
     "ücretsiz keşif",                      # 2026-09-01, kullanıcı teyit etti
-    "10 yılı aşkın sektör deneyimi",       # firma tanıtım PDF'i, "Hakkımızda"
-    "günlük / haftalık / aylık kiralama",  # firma tanıtım PDF'i, "Esnek Kiralama Dönemleri"
-    "kurulum ve söküm dahil",              # firma tanıtım PDF'i, "Eksiksiz Hizmet Paketi"
 ]
-# ⏳ HÂLÂ teyit bekleyen (sayfaya GİRMEZ): TSE/CE belgesi · İSG sertifikası ·
-#    depozito şartları · indirimli paket · SAATLİK kiralama (PDF'te de yok)
-# ⛔ PDF'teki "İstanbul'un en güvenilir iskele kiralama firmalarından biri" ifadesi
-#    KULLANILMADI — "en güvenilir" ispat gerektiren üstünlük iddiası. Yerine somut
-#    olan "10 yılı aşkın deneyim" kullanılıyor.
-
-# Firma tanıtım dosyası (kullanıcı 2026-09-01'de yükledi)
-TANITIM_PDF = "/ISTANBUL-KIRALIK-ISKELE-FIRMASI-DEHA-ISKELE.pdf"
-TANITIM_PDF_BOYUT = "2,6 MB"
-
-# ── Kiralama dönemleri (firma tanıtım PDF'i, "Esnek Kiralama Dönemleri") ─────
-# ⚠️ Sitede önce "kira aylık işliyor" yazıyordu — PDF günlük ve haftalık seçeneği de
-#    olduğunu gösterdi, düzeltildi. Saatlik kiralama PDF'te de YOK, yazılmıyor.
-KIRALAMA_DONEMLERI = [
-    ("Günlük kiralama", "Kısa süreli ve acil projeler için ideal çözüm."),
-    ("Haftalık kiralama", "Orta vadeli işler için uygun maliyetli seçenek."),
-    ("Aylık kiralama", "Uzun soluklu projeler için en ekonomik kiralama planı."),
-]
+# ⏳ HÂLÂ teyit bekleyen (sayfaya GİRMEZ): tecrübe yılı · TSE/CE belgesi · İSG sertifikası ·
+#    depozito şartları · indirimli paket · saatlik/günlük kiralama
 # ⛔ "en iyi", "bir numara", "lider" gibi ÜSTÜNLÜK İDDİASI YAZILMAZ. Kullanıcı örnek
 #    metinde "Avcılar'ın en iyi firması" yazmıştı; Ticari Reklam ve Haksız Ticari
 #    Uygulamalar Yönetmeliği ispatlanamayan üstünlük iddiasını yasaklıyor, Reklam Kurulu

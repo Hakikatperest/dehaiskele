@@ -269,7 +269,6 @@ def alt_bilgi():
         <a class="logo-bag" href="/">{logo()}</a>
         <p>{e(S['aciklama'])}</p>
         {tel_btn("dg dg-sari")}
-        <p class="alt-pdf">{tanitim_pdf_bag("alt-pdf-bag")}</p>
       </div>
       <div class="alt-sut"><h3>İskele Türleri</h3><ul>{tur_ln}</ul></div>
       <div class="alt-sut"><h3>Rehberler</h3><ul>{reh_ln}</ul></div>
@@ -373,10 +372,9 @@ def guven_seridi():
     """⚠️ Buradaki maddeler data.ONAYLI_IDDIALAR ile sınırlı; kullanıcı onayı olmadan
     'sigortalı', '20 yıl tecrübe', '7/24' gibi iddia EKLEME."""
     ogeler = [
-        ("10 yılı aşkın deneyim", "İstanbul'da köklü bir saha geçmişi"),
         ("İstanbul'un tüm ilçeleri", "Avrupa ve Anadolu yakasının tamamına kurulum"),
-        ("Günlük, haftalık, aylık", "Kiralama süresi işinize göre esniyor"),
-        ("Kurulum, söküm ve sigorta", "İskeleyi biz kurar, biz sökeriz; süreç sigorta güvencesinde"),
+        ("Keşifle net ölçü", "Cephe metrekaresi yerinde ölçülür, tahminle fiyat verilmez"),
+        ("Kurulum ve söküm bizde", "İskeleyi biz kurar, iş bitince biz sökeriz"),
     ]
     ic = "".join(f'<li><strong>{e(a)}</strong><span>{e(b)}</span></li>' for a, b in ogeler)
     return f'<section class="serit"><div class="kap"><ul>{ic}</ul></div></section>'
@@ -393,25 +391,6 @@ def cta_band(baslik, metin):
   <h2>{e(baslik)}</h2><p>{e(metin)}</p>
   <div class="dg-grup">{tel_btn()}{tel2_btn()}{wa_btn()}</div>
 </div></section>"""
-
-
-def kiralama_donemleri():
-    """Firma tanıtım PDF'indeki "Esnek Kiralama Dönemleri" bölümü.
-    ⚠️ Saatlik kiralama YOK — ne PDF'te ne de teyitli iddialarda geçiyor."""
-    kart = "".join(
-        f'<div class="donem"><h3>{e(a)}</h3><p>{e(b)}</p></div>'
-        for a, b in D.KIRALAMA_DONEMLERI)
-    return f"""<section class="bol donemler"><div class="kap">
-  <h2>Kiralama Süresi İşinize Göre</h2>
-  <p class="giris">Her iş aynı sürmüyor; kiralama dönemini de ona göre seçiyoruz.
-     Ne kadar süreceğini söyleyin, en ekonomik olanı birlikte belirleyelim.</p>
-  <div class="izgara-3">{kart}</div>
-</div></section>"""
-
-def tanitim_pdf_bag(sinif="dg dg-hat2"):
-    """Firma tanıtım dosyası. ⚠️ 2,6 MB — yeni sekmede açılıyor, otomatik inmiyor."""
-    return (f'<a class="{sinif}" href="{D.TANITIM_PDF}" target="_blank" rel="noopener">'
-            f'<span>Firma tanıtım dosyası (PDF, {D.TANITIM_PDF_BOYUT})</span></a>')
 
 def hesaplayici():
     """Cephe metrekaresi hesabı. ⚠️ TL basmaz — fiyat listesi henüz onaylanmadı
@@ -586,8 +565,7 @@ def h2_govde(b, i):
                 "Bunun için ayrıca bir şey istemiyoruz, işin parçası :)</p>")
 
     if has("kısa", "uzun dönem", "aylık", "vadeli", "süreli"):
-        return (f"<p>Kiralama süresini işinize göre ayarlıyoruz: günlük, haftalık ve aylık "
-                f"seçeneklerimiz var. {ek(i)} dış cephe boyası çoğu zaman birkaç haftada "
+        return (f"<p>Kira aylık işliyor. {ek(i)} dış cephe boyası çoğu zaman birkaç haftada "
                 f"bitiyor; mantolama, sıva yenileme ve güçlendirme işleri aylara yayılıyor.</p>"
                 f"<p>Tavsiyem: süreyi olduğundan kısa söylemeyin. \"İki haftada biter\" deyip "
                 f"iki ay süren çok iş gördüm.. İşin gerçek takvimini baştan konuşursak hesap da "
@@ -631,15 +609,10 @@ def ilce_h3_blok(i):
      Böyle işlerde kurulum-söküm işçiliği toplam hesapta kiradan büyük çıkabiliyor; o yüzden
      \"aylık ne kadar?\" sorusu tek başına yetmiyor, ikisini birlikte konuşmak gerekiyor.</p>
 
-  <h3>{e(ek(i))} günlük ve haftalık iskele kiralama</h3>
-  <p>Her iş aylarca sürmüyor. Tek duvar boyası, balkon onarımı ya da acil bir tadilat için
-     günlük kiralama en mantıklısı; orta vadeli işlerde haftalık seçenek devreye giriyor.
-     Ne kadar süreceğini söyleyin, ona göre en ekonomik dönemi birlikte seçelim.</p>
-
   <h3>{e(ek(i))} aylık ve uzun dönem kiralama</h3>
-  <p>Mantolama, sıva yenileme ve güçlendirme işlerinde iskele aylarca duruyor; bu işlerde aylık
-     kiralama en ekonomiği oluyor. Uzun kirada iskeleyi düzenli kontrol ediyoruz — aylar süren
-     şantiyede bu hem güvenlik hem denetim meselesi. Süre uzarsa yeni kurulum ücreti çıkmıyor.</p>
+  <p>Mantolama, sıva yenileme ve güçlendirme işlerinde iskele aylarca duruyor. Uzun kirada
+     iskeleyi düzenli kontrol ediyoruz — aylar süren şantiyede bu hem güvenlik hem denetim
+     meselesi. Süre uzarsa aylık üzerinden devam ediyor, yeni bir kurulum ücreti çıkmıyor.</p>
 
   <h3>{e(ek(i))} acil iskele ihtiyacı</h3>
   <p>Acil durumlarda önce takvime bakıyoruz ve size <strong>gerçek</strong> en yakın günü
@@ -675,9 +648,8 @@ def ilce_sss(i):
          "çoğunlukla bir gün sürüyor; yüksek bloklarda ve zor erişimli sokaklarda bu süre uzayabiliyor. "
          "Kurulum gününü baştan söylüyoruz ki bina da kendi işini ona göre planlasın."),
         (f"İskele {ek(i)} ne kadar süre kalabilir?",
-         "İstediğiniz kadar — günlük, haftalık ve aylık kiralama seçeneklerimiz var. Boya işi "
-         "genelde birkaç haftada bitiyor, mantolama ve güçlendirme aylara yayılıyor. Süreyi "
-         "baştan konuşuyoruz; uzarsa yeni kurulum ücreti çıkmadan devam ediyor."),
+         "Kira aylık işliyor. Boya işi genelde birkaç haftada bitiyor, mantolama ve güçlendirme "
+         "aylara yayılıyor. Süreyi baştan konuşup yazıyoruz; uzarsa aylık üzerinden devam ediyor."),
         (f"{m} taraflarına da geliyor musunuz?",
          f"Evet. {ek(i, 'gen')} tüm mahallelerine kurulum yapıyoruz. " + merkez_cumlesi(i)),
         ("İskele kurulduktan sonra sorumluluk kimde?",
@@ -964,10 +936,9 @@ ANA_SSS = [
      "yerden çıkıyor. İlçenize ait sayfada o bölgede sık karşılaştığımız durumları yazdım — "
      "zemin, sokak genişliği, yapı stoğu gibi."),
     ("İskele en az ne kadar süreyle kiralanıyor?",
-     "Üç seçenek var: günlük, haftalık ve aylık. Kısa süreli ve acil işlerde günlük, orta vadeli "
-     "işlerde haftalık, uzun soluklu projelerde aylık kiralama en ekonomiği oluyor. Tavsiyem "
-     "süreyi olduğundan kısa söylememeniz.. \"İki haftada biter\" deyip iki ay süren çok iş "
-     "gördüm. Süre uzarsa yeni bir kurulum ücreti çıkmıyor, kiralama devam ediyor."),
+     "Kira aylık işliyor. Dış cephe boyası birkaç haftada bitebiliyor, mantolama ve güçlendirme "
+     "aylara yayılıyor. Tavsiyem süreyi olduğundan kısa söylememeniz.. \"İki haftada biter\" "
+     "deyip iki ay süren çok iş gördüm. Süre uzarsa aylık üzerinden devam ediyor."),
     ("Keşif için ücret alıyor musunuz?",
      "Keşifte cepheyi ölçüyor, zemini ve aracın yanaşacağı yeri görüyoruz. Ölçü almadan verilen "
      "rakam tahminden ibaret; o yüzden önce yerinde bakmayı tercih ediyorum."),
@@ -1002,7 +973,6 @@ def anasayfa():
 </section>
 
 {guven_seridi()}
-{kiralama_donemleri()}
 {tur_kartlari("Hangi İskeleye İhtiyacınız Var?")}
 {hesaplayici()}
 
@@ -1072,13 +1042,9 @@ def r_fiyat():
      <a href="/#hesap">cephe metrekaresi hesaplayıcısından</a> çıkarabilirsiniz.</p>
 
   <h2>2. Süre</h2>
-  <p>Kiralama süresi üç şekilde işliyor: <strong>günlük</strong>, <strong>haftalık</strong> ve
-     <strong>aylık</strong>. Kısa süreli ve acil işlerde günlük, orta vadeli işlerde haftalık,
-     uzun soluklu projelerde aylık kiralama en ekonomiği oluyor.</p>
-  <p>Dış cephe boyası çoğu zaman birkaç haftada bitiyor; mantolama, sıva yenileme ve
-     güçlendirme işleri aylara yayılıyor. Süreyi olduğundan kısa söylemek sonradan hesabı
-     şaşırtıyor — işin gerçek takvimini baştan konuşmak hem size hem bize daha sağlıklı.
-     Hangi dönemin sizin işinize oturduğunu telefonda birlikte belirleyebiliriz.</p>
+  <p>Kira aylık işliyor. Dış cephe boyası çoğu zaman birkaç haftada bitiyor; mantolama, sıva
+     yenileme ve güçlendirme işleri aylara yayılıyor. Süreyi olduğundan kısa söylemek sonradan
+     hesabı şaşırtıyor — işin gerçek takvimini baştan konuşmak daha sağlıklı.</p>
 
   <h2>3. Kurulum ve söküm işçiliği</h2>
   <p>Bu kalem metrekareyle doğru orantılı değil; işin zorluğuyla orantılı. Dar sokak, eğimli
