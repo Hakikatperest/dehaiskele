@@ -325,8 +325,10 @@ def sss_semasi(sorular):
 
 # ── Bileşenler ──────────────────────────────────────────────────────────────
 def hero_h1(satirlar):
+    # ⚠️ Satırlar arasına boşluk şart: bloklar görsel olarak alt alta ama metin
+    #    çıkarımında bitişiyor ("kurarız,siz işinize bakın") — Google da böyle okuyor.
     return ('<h1 class="hb">' +
-            "".join(f'<span class="l"><span>{e(s)}</span></span>' for s in satirlar) +
+            " ".join(f'<span class="l"><span>{e(s)}</span></span>' for s in satirlar) +
             '</h1>')
 
 def guven_seridi():
