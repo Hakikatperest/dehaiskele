@@ -10,17 +10,21 @@
       var acik = menu.classList.toggle("acik");
       ham.setAttribute("aria-expanded", acik ? "true" : "false");
       ham.setAttribute("aria-label", acik ? "Menüyü kapat" : "Menüyü aç");
+      /* Menü açıkken sabit alt çubuk gizlensin — menünün altını örtüyordu. */
+      document.body.classList.toggle("menu-acik", acik);
     });
     menu.addEventListener("click", function (o) {
       if (o.target.tagName === "A") {
         menu.classList.remove("acik");
         ham.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("menu-acik");
       }
     });
     document.addEventListener("keydown", function (o) {
       if (o.key === "Escape" && menu.classList.contains("acik")) {
         menu.classList.remove("acik");
         ham.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("menu-acik");
         ham.focus();
       }
     });

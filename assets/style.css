@@ -693,3 +693,72 @@ html.js .hero-cip li:nth-child(4){animation-delay:.58s}
 .ust{background:rgba(255,255,255,.96)}
 .menu a{color:var(--celik)}
 .hamburger span{background:var(--celik)}
+
+/* Hero sloganı — H1 SEO metnini taşıdığı için marka sloganı ayrı satırda,
+   görsel ağırlığı H1'e yakın ama başlık hiyerarşisini bozmadan. */
+.hero-slogan{font-size:clamp(1.24rem,2.7vw,1.85rem); font-weight:700; line-height:1.35;
+  color:#fff; margin:0 0 16px; letter-spacing:-.01em;
+  text-shadow:0 2px 18px rgba(0,0,0,.42)}
+.hero-slogan::before{content:""; display:block; width:46px; height:3px; border-radius:3px;
+  margin-bottom:15px; background:linear-gradient(90deg,var(--tur),var(--amber))}
+html.js .hero-slogan{opacity:0; animation:cipGel .6s ease .26s forwards}
+.hero-tam h1{font-size:clamp(1.72rem,3.9vw,2.72rem); margin-bottom:14px}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBİL/MASAÜSTÜ DÜZELTMELERİ (2026-09-01, kullanıcının ekran görüntüleri)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ⚠️ HATA 1: Şerit normal akışta, menü sticky idi. Kaydırırken ikisinin arasından
+   arkadaki koyu içerik sızıyordu. İkisi tek sticky sarmalayıcıda birleşti. */
+.ust-kap{position:sticky; top:0; z-index:95}
+.ust{position:static}                    /* sticky artık sarmalayıcıda */
+.ust-serit{position:static}
+
+/* ⚠️ HATA 2: Menü %96 opaktı, arkasındaki koyu bölümler sızıyordu. Tam opak. */
+.ust{background:#fff}
+
+/* Sticky başlık yüksekliği kadar çapa payı — #hesap, #ilceler gibi bağlantılara
+   atlarken başlık içeriği örtmesin. */
+:target,[id]{scroll-margin-top:calc(var(--ust-h) + 54px)}
+
+@media (max-width:860px){
+  /* ⚠️ HATA 3: Mobilde şeritteki metinler gizliydi, geriye anlamsız 3 ikon kalıyordu.
+     Şerit mobilde tamamen kaldırıldı — aynı işlevi sabit alt çubuk (Ara / 2. Hat /
+     WhatsApp) zaten görüyor ve sticky alanı 114px'ten 72px'e düşüyor. */
+  .ust-serit{display:none}
+
+  /* ⚠️ HATA 4: Logo küçük, "Teklif Al" orantısız büyüktü. */
+  .logo-im{height:52px}
+  .ust-ic{gap:10px}
+  .dg-teklif{padding:10px 15px; font-size:.88rem; border-radius:10px}
+  .dg-teklif svg{width:13px; height:13px}
+  .hamburger{width:42px; height:42px; flex:none}
+}
+@media (max-width:400px){
+  .logo-im{height:46px}
+  .dg-teklif{padding:9px 12px; font-size:.83rem}
+  .dg-teklif span{white-space:nowrap}
+}
+
+/* Alt bilgideki uzun tür listesi mobilde iki sütun — 18 madde alt alta çok uzuyordu */
+@media (max-width:620px){
+  .alt-sut ul{display:grid; grid-template-columns:1fr 1fr; gap:2px 14px}
+  .alt-sut li{margin:.3em 0}
+  .alt-iletisim ul{grid-template-columns:1fr}
+}
+
+/* ⚠️ HATA 5 — KRİTİK: `.ust` üzerindeki backdrop-filter YIĞIN BAĞLAMI oluşturuyor.
+   Mobil menü `.menu{position:fixed}` onun çocuğu olduğu için viewport'a değil
+   `.ust`'a göre konumlanıyordu → menü yanlış yerde/kırpılmış açılır.
+   (Aynı tuzak daha önce başka bir projede menü linklerini tıklanamaz yapmıştı.)
+   Menü zaten tam opak (#fff) olduğu için blur'a gerek yok — kaldırıldı. */
+.ust{backdrop-filter:none; -webkit-backdrop-filter:none}
+
+/* Mobil menü paneli: sticky sarmalayıcının altından başlasın, ekranı taşırmasın */
+@media (max-width:860px){
+  .menu{inset:var(--ust-h) 0 auto 0; max-height:calc(100dvh - var(--ust-h) - 66px);
+    overflow-y:auto; overscroll-behavior:contain}
+  /* açık menüde sabit alt çubuk menüyü örtmesin */
+  body.menu-acik .sabit-ara{opacity:0; pointer-events:none; transform:translateY(100%)}
+  .sabit-ara{transition:opacity .25s, transform .25s}
+}

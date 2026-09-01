@@ -255,7 +255,8 @@ def ust_header(aktif=""):
         sinif = ' class="aktif"' if u == aktif else ""
         parcalar.append('<a href="%s"%s>%s</a>' % (u, sinif, e(m)))
     ln = "".join(parcalar)
-    return f"""{ust_serit()}
+    return f"""<div class="ust-kap">
+{ust_serit()}
 <header class="ust">
   <div class="kap ust-ic">
     <a class="logo-bag" href="/" aria-label="{e(S['marka'])} ana sayfa">{logo()}</a>
@@ -268,6 +269,7 @@ def ust_header(aktif=""):
     </div>
   </div>
 </header>
+</div>
 """
 
 def kirinti(parcalar):
@@ -411,7 +413,7 @@ def dalga(ters=False):
     """Hero altındaki dalgalı ayraç — saf SVG, tek yol, ~0,3 KB."""
     s = "dalga dalga-ters" if ters else "dalga"
     return (f'<div class="{s}" aria-hidden="true">'
-            f'<svg viewBox="0 0 1440 90" preserveAspectRatio="none">'
+            f'<svg viewBox="0 0 1440 90" width="1440" height="90" preserveAspectRatio="none">'
             f'<path d="M0,54 C240,90 480,10 720,32 C960,54 1200,86 1440,58 L1440,90 L0,90 Z"/>'
             f'</svg></div>')
 
@@ -1083,7 +1085,9 @@ ANA_SSS = [
 
 def anasayfa():
     yol = "/"
-    baslik = f"{S['marka']} — İstanbul İskele Kiralama, Cephe İskelesi Kurulumu"
+    # Google sonuçlarında çıkacak başlık (kullanıcı 2026-09-01'de bu biçimi istedi).
+    # H1 ile birebir aynı tutuldu ki SERP ile sayfa arasında kopukluk olmasın.
+    baslik = "İstanbul İskele Kiralama - Deha İskele"
     aciklama = ("İstanbul'un tüm ilçelerinde cephe iskelesi kiralama, kurulum ve söküm. "
                 "Keşifle net ölçü, aylık kira. Eyüpsultan merkezli ekip: " + S["tel"])
     sema = (isletme_semasi() + sss_semasi(ANA_SSS) +
@@ -1095,8 +1099,9 @@ def anasayfa():
 <section class="hero hero-ana hero-tam">
   <div class="hero-fon">{gorsel(D.HERO_GORSEL, D.GORSEL_ALT[D.HERO_GORSEL], boy="100vw", oncelik=True)}</div>
   <div class="kap hero-ic">
-    <p class="hero-ust">{e(S['sehir'])} · Cephe İskelesi Kiralama</p>
-    {hero_h1(["İskeleyi biz kurarız,", "siz işinize bakın."])}
+    <p class="hero-ust">İstanbul İskele Kiralama · DEHA İSKELE</p>
+    {hero_h1(["İstanbul İskele Kiralama - Deha İskele"])}
+    <p class="hero-slogan">“Güvenli Yapılar, Sağlam İskeleler.”</p>
     <p class="hero-alt">Cephenizi gelip ölçüyoruz, metrekare üzerinden net konuşuyoruz.
        Kurulum da söküm de bize ait — siz sadece işinizi yapıyorsunuz.</p>
     <div class="dg-grup">{tel_btn()}{teklif_btn("dg dg-cerceve")}</div>
