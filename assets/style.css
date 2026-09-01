@@ -309,14 +309,7 @@ html.js .hb.ac .l:nth-child(3)>span{animation-delay:.2s}
 .w4-bag:has(.w4-ad:hover) .w4-ad::after{transform:scaleX(1)}
 
 /* ── Sabit alt çubuk (mobil) ──────────────────────────────────────────── */
-.sabit-ara{display:none; position:fixed; left:0; right:0; bottom:0; z-index:95;
-  background:rgba(18,22,28,.96); backdrop-filter:blur(10px);
-  border-top:1px solid var(--cizgi); padding:9px 12px calc(9px + env(safe-area-inset-bottom));
-  gap:9px}
-.sabit-ara a{flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
-  padding:12px; border-radius:11px; text-decoration:none; font-weight:700; font-size:.94rem}
-.sabit-ara a:first-child{background:var(--sari); color:#1a1305}
-.sabit-ara a:last-child{background:var(--wa); color:#04351a}
+
 
 /* ── Ortaya çıkış ─────────────────────────────────────────────────────────
    ⚠️ Görünürlük yalnız html.js varken gizlenir + app.js'te güvenlik ağı var.
@@ -415,8 +408,7 @@ html.js .gel.gorundu{opacity:1; transform:none}
 .bol .dg-hat2,.hesap .dg-hat2{background:var(--ak); color:var(--ink);
   border:1px solid var(--sari-koyu)}
 .bol .dg-hat2:hover,.hesap .dg-hat2:hover{background:#fff8e6}
-.sabit-ara .sa-2{background:var(--koyu-3); color:var(--sari);
-  border:1px solid rgba(255,194,51,.4)}
+
 
 /* ── Kiralama dönemleri ───────────────────────────────────────────────────── */
 .donemler{background:var(--ak-3)}
@@ -662,9 +654,6 @@ html.js .hero-cip li:nth-child(4){animation-delay:.58s}
 .tablo th{background:linear-gradient(178deg,var(--koyu-2),var(--koyu))}
 .tablo a{color:var(--tur-koyu)}
 .kirinti a:hover{color:var(--tur-2)}
-.sabit-ara a:first-child{background:linear-gradient(178deg,var(--tur-2),var(--tur)); color:#fff;
-  box-shadow:0 2px 0 var(--tur-koyu)}
-.sabit-ara .sa-2{color:var(--tur-2); border-color:rgba(242,128,29,.4)}
 .cta{background:linear-gradient(160deg,var(--koyu-2),var(--koyu)); position:relative;
   overflow:hidden}
 .cta::before{content:""; position:absolute; inset:0; opacity:.4; pointer-events:none;
@@ -880,4 +869,81 @@ body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
   .menu{margin-inline:0}
   .ust-ara{margin-left:auto}
   .ust-tel{display:none}          /* mobilde sabit alt çubukta zaten var */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBİL OTURAKLILIK + SABİT İLETİŞİM ÇUBUĞU (2026-09-01)
+   Kullanıcı: "footer kutucuk içinde gibi", "oturaklı/kurumsal durmuyor",
+   "sabit butonlar daha modern olsun; arama mavi, WhatsApp yeşil, Hat (1)/(2)".
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --mavi:#1f6fe0; --mavi-2:#3d8bf5; --mavi-koyu:#1454b4;
+}
+
+/* ── Sabit iletişim çubuğu ────────────────────────────────────────────────
+   İkon üstte, etiket altta; yükseltilmiş cam zemin, 3B kabartma.
+   Dokunma hedefi 56px — parmakla rahat basılıyor. */
+.sabit-ara{display:none; position:fixed; left:0; right:0; bottom:0; z-index:96;
+  gap:8px; padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(18,21,27,.86),rgba(18,21,27,.97));
+  backdrop-filter:blur(14px) saturate(1.3);
+  border-top:1px solid rgba(255,255,255,.1);
+  box-shadow:0 -8px 28px rgba(0,0,0,.3)}
+.sa{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; min-height:56px; padding:7px 4px; border-radius:14px; text-decoration:none;
+  font-weight:700; letter-spacing:-.01em;
+  transition:transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .2s, filter .2s}
+.sa-ik{display:grid; place-items:center; line-height:0}
+.sa-ik svg{width:19px; height:19px}
+.sa-yz{font-size:.78rem; line-height:1}
+.sa:active{transform:translateY(2px)}
+/* Arama hatları: MAVİ */
+.sa-tel{background:linear-gradient(178deg,var(--mavi-2),var(--mavi)); color:#fff;
+  box-shadow:0 3px 0 var(--mavi-koyu), 0 6px 16px rgba(31,111,224,.36),
+             inset 0 1px 0 rgba(255,255,255,.28)}
+.sa-tel:active{box-shadow:0 1px 0 var(--mavi-koyu), 0 3px 10px rgba(31,111,224,.3)}
+/* WhatsApp: YEŞİL */
+.sa-wa{background:linear-gradient(178deg,#31e07a,#1fbe5f); color:#04351a;
+  box-shadow:0 3px 0 #10893f, 0 6px 16px rgba(37,211,102,.34),
+             inset 0 1px 0 rgba(255,255,255,.34)}
+.sa-wa:active{box-shadow:0 1px 0 #10893f, 0 3px 10px rgba(37,211,102,.28)}
+
+/* ── Mobilde footer "kutu içinde" duruyordu → tam genişlik, oturaklı ─────── */
+@media (max-width:860px){
+  .sabit-ara{display:flex}
+  .alt{padding:0 0 88px; background:var(--koyu)}
+  /* ⚠️ Yuvarlak kart mobilde ekranın içinde yüzen kutu gibi duruyordu:
+     kenar boşlukları + yuvarlak köşeler dar ekranda oyuncak hissi veriyor. */
+  .alt>.kap{width:100%; max-width:none; border-radius:0; border:0;
+    padding:30px 17px 22px; box-shadow:none;
+    border-top:3px solid var(--tur)}
+  .alt-ust{grid-template-columns:1fr; gap:26px; padding-bottom:24px}
+  .alt-marka p{max-width:none}
+  .alt-son{padding-bottom:8px}
+}
+
+/* ── Mobil oturaklılık: nefes, hiyerarşi, tutarlı ritim ─────────────────── */
+@media (max-width:860px){
+  .bol{padding:clamp(34px,7vw,52px) 0}
+  .kap{width:min(100% - 30px,var(--kap))}
+  h2{font-size:clamp(1.3rem,5.4vw,1.62rem)}
+  h3{font-size:1.02rem}
+  .metin p,.metin li{font-size:.975rem; line-height:1.72}
+  .bol-bas{margin-bottom:24px; text-align:left}
+  .bol-bas h2::after{left:0; transform:none}
+  .bol-bas .giris{margin-left:0}
+  /* kartlar: daha sakin gölge, daha net kenar — "oyuncak" hissini alır */
+  .kart-daire{width:min(150px,54%); margin-bottom:-58px; box-shadow:0 8px 22px rgba(0,0,0,.14), 0 0 0 5px #fff}
+  .kart-ic{padding:70px 17px 19px; border-radius:12px;
+    box-shadow:0 1px 2px rgba(16,20,26,.05), 0 6px 16px rgba(16,20,26,.05)}
+  .izgara-kart{gap:16px}
+  .donem,.kart-ic,.sss-o,.harita,.vitrin,.tablo-sar{border-radius:12px}
+  .bolunmus-ic{border-radius:14px}
+  .bl-sol,.bl-sag{padding:24px 18px}
+  .hero-tam{padding:56px 0 64px}
+  .serit ul{padding:18px 0}
+  .cta{padding:38px 0}
+  /* sabit çubuk her sayfada alt boşluk bıraksın */
+  main{padding-bottom:6px}
 }

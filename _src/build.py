@@ -335,11 +335,14 @@ def alt_bilgi():
     </div>
   </div>
 </footer>
-<div class="sabit-ara">
-  <a href="tel:{S['tel_link']}">{svg_tel()}<span>Ara</span></a>
-  <a class="sa-2" href="tel:{S['tel2_link']}">{svg_tel()}<span>2. Hat</span></a>
-  <a href="https://wa.me/{S['wa']}" target="_blank" rel="noopener">{svg_wa()}<span>WhatsApp</span></a>
-</div>
+<nav class="sabit-ara" aria-label="Hızlı iletişim">
+  <a class="sa sa-tel" href="tel:{S['tel_link']}">
+    <span class="sa-ik">{svg_tel()}</span><span class="sa-yz">Hat (1)</span></a>
+  <a class="sa sa-tel" href="tel:{S['tel2_link']}">
+    <span class="sa-ik">{svg_tel()}</span><span class="sa-yz">Hat (2)</span></a>
+  <a class="sa sa-wa" href="https://wa.me/{S['wa']}" target="_blank" rel="noopener">
+    <span class="sa-ik">{svg_wa()}</span><span class="sa-yz">WhatsApp</span></a>
+</nav>
 <script src="{surum('/assets/app.js')}" defer></script>
 </body>
 </html>
