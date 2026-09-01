@@ -1159,3 +1159,13 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 @media (max-width:400px){
   .alt .logo-im,body.kaydi .alt .logo-im{height:120px}
 }
+
+/* Sosyal hesap bağlantıları (alt bilgi) */
+.alt-sosyal{display:flex; flex-wrap:wrap; gap:9px; margin-top:16px}
+.sos{display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:999px;
+  background:#fff; border:1px solid #dde2e9; text-decoration:none;
+  font-size:.86rem; font-weight:700; color:#48525f !important;
+  transition:transform .2s, border-color .2s, color .2s, box-shadow .2s}
+.sos:hover{transform:translateY(-2px); border-color:transparent; color:#fff !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.16)}
+.sos-instagram:hover{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888)}

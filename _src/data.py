@@ -65,6 +65,13 @@ ONAYLI_IDDIALAR = [
 #    KULLANILMADI — "en güvenilir" ispat gerektiren üstünlük iddiası. Yerine somut
 #    olan "10 yılı aşkın deneyim" kullanılıyor.
 
+# ── Sosyal hesaplar (kullanıcı 2026-09-01'de verdi) ─────────────────────────
+# ⚠️ JSON-LD `sameAs` alanına da giriyor: Google'ın işletmeyi sosyal hesapla
+#    eşleştirmesine yardım ediyor (İşletme Profili için de faydalı).
+SOSYAL = [
+    ("Instagram", "https://www.instagram.com/deha_iskele/", "instagram"),
+]
+
 # Firma tanıtım dosyası (kullanıcı 2026-09-01'de yükledi)
 TANITIM_PDF = "/ISTANBUL-KIRALIK-ISKELE-FIRMASI-DEHA-ISKELE.pdf"
 TANITIM_PDF_BOYUT = "2,6 MB"

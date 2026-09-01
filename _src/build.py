@@ -162,6 +162,13 @@ def svg_tel():
     return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
             '<path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.6c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.3 2.6z"/></svg>')
 
+def svg_instagram():
+    return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" '
+            'stroke="currentColor" stroke-width="1.9">'
+            '<rect x="3" y="3" width="18" height="18" rx="5.2"/>'
+            '<circle cx="12" cy="12" r="4"/>'
+            '<circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>')
+
 def svg_saat():
     return ('<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" '
             'stroke="currentColor" stroke-width="2" stroke-linecap="round">'
@@ -301,6 +308,13 @@ def w4_kredi():
             '<a class="w4-ad" href="https://www.web4medya.com/" target="_blank" rel="noopener">'
             'Web<span class="w4-d">4</span>Medya</a></span></div>')
 
+def sosyal_baglantilar():
+    ikon = {"instagram": svg_instagram}
+    return "".join(
+        f'<a class="sos sos-{k}" href="{e(u)}" target="_blank" rel="noopener" '
+        f'aria-label="{e(ad)} sayfamız">{ikon[k]()}<span>{e(ad)}</span></a>'
+        for ad, u, k in D.SOSYAL)
+
 def alt_bilgi():
     ilce_ln = " · ".join(
         f'<a href="/{i["slug"]}-iskele-kiralama/">{e(i["ad"])}</a>' for i in D.ILCELER)
@@ -328,6 +342,7 @@ def alt_bilgi():
            <span>{e(S['saat_gun'])} · acil durumlarda 7/24</span></p>
         <p><a href="https://www.google.com/maps/search/?api=1&amp;query={e(S['adres'].replace(' ', '+'))}"
            target="_blank" rel="noopener">Yol tarifi al</a></p>
+        <div class="alt-sosyal">{sosyal_baglantilar()}</div>
       </div>
     </div>
     <div class="alt-ilceler"><h3>İstanbul'un tüm ilçelerinde iskele kiralama</h3>
@@ -399,6 +414,7 @@ def isletme_semasi(alan_adi=None):
             "addressCountry": "TR",
         },
         "areaServed": {"@type": "City", "name": "İstanbul"},
+        "sameAs": [u for _, u, _ in D.SOSYAL],
         "openingHours": S["saat_schema"],
         "openingHoursSpecification": {
             "@type": "OpeningHoursSpecification",

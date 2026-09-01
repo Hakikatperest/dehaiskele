@@ -12,7 +12,8 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ⚠️ Bu hostlar dışındaki HER dış istek hata sayılır. Google Maps facade
 #    arkasında (tıklanmadan istek gitmiyor); www.web4medya.com yalnız bağlantı.
 DIS_BEYAZ = {"dehaiskele.com", "www.dehaiskele.com",   # kendi alan adı (canonical/og:url)
-            "wa.me", "www.google.com", "maps.google.com", "www.web4medya.com"}
+            "wa.me", "www.google.com", "maps.google.com", "www.web4medya.com",
+            "www.instagram.com"}   # yalnız bağlantı, istek doğurmuyor
 
 # ⏳ Kullanıcı onaylamadan sayfaya girmemesi gereken iddialar.
 # 7/24 · sigortalı · ücretsiz keşif → kullanıcı 2026-09-01'de TEYİT ETTİ, listeden çıktı.
