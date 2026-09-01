@@ -1169,3 +1169,24 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 .sos:hover{transform:translateY(-2px); border-color:transparent; color:#fff !important;
   box-shadow:0 6px 18px rgba(0,0,0,.16)}
 .sos-instagram:hover{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888)}
+
+/* ⚠️ GÖRSELLER KESİK GÖRÜNÜYORDU (kullanıcı bildirdi):
+   "Ekranı kaplamasın" düzeltmesinde vitrine sabit `aspect-ratio:16/10` +
+   `object-fit:cover` verilmişti; bu, oranı farklı görselleri (kaynaklar 0,67:1 ile
+   1,87:1 arasında) kırpıyordu.
+   Yeni kural: KUTU GÖRSELE GÖRE ŞEKİLLENİR — görselin tamamı görünür (kırpma yok),
+   yükseklik sınırlı olduğu için de ekranı kaplamaz. Portre görsel dar ve yüksek,
+   yatay görsel geniş ve alçak çıkar. */
+.vitrin{display:block; width:fit-content; max-width:100%; margin-inline:auto;
+  aspect-ratio:auto}
+.vitrin picture{display:block; width:auto; height:auto}
+.vitrin img{display:block; width:auto; height:auto;
+  max-width:100%; max-height:min(62vh,540px); object-fit:fill}
+.hero-gorsel .vitrin{aspect-ratio:auto}
+.metin .vitrin{max-width:100%}
+@media (max-width:620px){
+  .vitrin{aspect-ratio:auto}
+  .vitrin img{max-height:min(58vh,420px)}
+}
+/* PDF kapağı da tam görünsün */
+.pdf-ac img{max-height:none; object-fit:fill; width:100%; height:auto}
