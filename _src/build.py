@@ -190,7 +190,7 @@ MENU = [
     ("/iskele-cesitleri/", "İskele Çeşitleri"),
     ("/iskele-kiralama-fiyatlari/", "Fiyatlar"),
     ("/iskele-is-guvenligi/", "İş Güvenliği"),
-    ("#ilceler", "İlçeler"),
+    ("/ilceler/", "İlçeler"),
 ]
 
 def head(baslik, aciklama, yol, schema=""):
@@ -860,7 +860,7 @@ def ilce_sayfasi(i):
     tur_bolumu = ilce_tur_bolumu(i)
 
     return head(baslik, aciklama, yol, sema) + ust_header() + f"""
-{kirinti([("Ana Sayfa", "/"), ("İlçeler", "/#ilceler"), (ad, None)])}
+{kirinti([("Ana Sayfa", "/"), ("İlçeler", "/ilceler/"), (ad, None)])}
 <main id="ana">
 <section class="hero hero-ic">
   <div class="kap">
@@ -1038,7 +1038,7 @@ def tur_nereden(t):
             f'açığız, Pazar dahil. Keşif ücretsiz — gelip cepheyi ölçüyor, zemini ve aracın '
             f'yanaşacağı yeri görüyoruz.</p>'
             f'<p>Sık çalıştığımız ilçelerden birkaçı: {ln} — '
-            f'<a href="/#ilceler">39 ilçenin tamamına</a> kurulum yapıyoruz.</p>')
+            f'<a href="/ilceler/">39 ilçenin tamamına</a> kurulum yapıyoruz.</p>')
 
 def tur_fiyat_bolumu(t):
     return (f'<h2>İstanbul\'da {e(t["ad"])} Kiralama Fiyatları</h2>'
@@ -1561,7 +1561,7 @@ def rehber_sayfasi(r):
                  "mainEntityOfPage": ALAN + yol}))
     ek = tur_kartlari("İskele Sistemleri") if r["slug"] == "iskele-cesitleri" else ""
     return head(baslik, aciklama, yol, sema) + ust_header(aktif=yol) + f"""
-{kirinti([("Ana Sayfa", "/"), ("Rehberler", "/#ilceler"), (r["ad"], None)])}
+{kirinti([("Ana Sayfa", "/"), ("Rehberler", "/iskele-cesitleri/"), (r["ad"], None)])}
 <main id="ana">
 <section class="hero hero-ic">
   <div class="kap">
@@ -1670,7 +1670,7 @@ def hakkimizda_sayfasi():
 
 {guven_seridi()}
 
-<section class="bol"><div class="kap">{vitrin("istanbul-iskele-firmasi", oncelik=True)}</div></section>
+<section class="bol"><div class="kap">{vitrin("istanbul-kiralik-insaat-iskele", oncelik=True)}</div></section>
 
 <section class="bol"><div class="kap dar metin">
   <h2>Biz Kimiz?</h2>
@@ -1708,7 +1708,7 @@ def hakkimizda_sayfasi():
   <ul class="ilce-liste">{tur_ln}</ul>
 
   <h2>Nerelere Geliyoruz?</h2>
-  <p>İstanbul'un <a href="/#ilceler">tüm ilçelerine</a> — Avrupa ve Anadolu yakasının tamamına.
+  <p>İstanbul'un <a href="/ilceler/">tüm ilçelerine</a> — Avrupa ve Anadolu yakasının tamamına.
      İlçenize ait sayfada o bölgede sık karşılaştığımız zemin, sokak ve yapı stoğu notlarını
      bulabilirsiniz.</p>
   <p>{ana_link("Genel hizmet kapsamımız için %s sayfamıza bakabilirsiniz.")}</p>
@@ -1718,6 +1718,71 @@ def hakkimizda_sayfasi():
 {sss_bolum(HAKKIMIZDA_SSS, "Deha İskele Hakkında Sık Sorulanlar")}
 {harita_bolum()}
 {cta_band("Cephenizi ölçelim, net konuşalım",
+          "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
+</main>
+{alt_bilgi()}"""
+
+
+# ── İlçeler sayfası ─────────────────────────────────────────────────────────
+# ⚠️ Menüdeki "İlçeler" bağlantısı `#ilceler` çapasıydı; o bölüm YALNIZ anasayfada
+#    olduğu için iç sayfalarda hiçbir yere gitmiyordu (kullanıcı bildirdi).
+#    39 ilçeye giden gerçek bir hub sayfası açıldı; tüm `/#ilceler` bağlantıları
+#    buraya yönlendirildi.
+ILCELER_SSS = [
+    ("İstanbul'un hangi ilçelerine iskele kiralıyorsunuz?",
+     "39 ilçenin tamamına — Avrupa ve Anadolu yakasının hepsine. Depomuz "
+     "Eyüpsultan'da, ekip iki yakaya da aynı yerden çıkıyor."),
+    ("İlçeme göre fiyat değişiyor mu?",
+     "Doğrudan ilçeye göre değil ama erişime göre değişiyor. Dar sokakta kamyon "
+     "yanaşamıyorsa malzeme elden taşınıyor, eğimli zeminde ayak kotları ayrı ayrı "
+     "ayarlanıyor — bunlar işçiliği etkiliyor. Metrekare aynı olsa da işin zorluğu "
+     "farklı oluyor."),
+    ("Uzak ilçelere de geliyor musunuz?",
+     "Geliyoruz. Şile, Silivri, Çatalca gibi uzak ilçelerde nakliye mesafesi "
+     "maliyette görünür bir kalem oluyor; onu da baştan konuşuyoruz. Ekip tek "
+     "programda gidip işi bitirecek şekilde planlanıyor."),
+]
+
+def ilceler_sayfasi():
+    yol = "/ilceler/"
+    h1 = f"İstanbul İlçeleri İskele Kiralama - {S['marka']}"
+    aciklama = ("İstanbul'un 39 ilçesinde cephe iskelesi kiralama, kurulum ve söküm. "
+                "Eyüpsultan merkezli ekip, Avrupa ve Anadolu yakasının tamamına hizmet.")
+    sema = (isletme_semasi() + sss_semasi(ILCELER_SSS) +
+            ldj({"@context": "https://schema.org", "@type": "CollectionPage",
+                 "name": h1, "url": ALAN + yol,
+                 "about": {"@id": ALAN + "/#isletme"}}))
+    return head(h1, aciklama, yol, sema) + ust_header(aktif=yol) + f"""
+{kirinti([("Ana Sayfa", "/"), ("İlçeler", None)])}
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1([h1])}
+    <p class="hero-slogan">İstanbul'un 39 ilçesinin tamamı</p>
+    <p class="hero-alt">Depomuz {e(S['adres_ilce'])}'da; ekip Avrupa ve Anadolu yakasına
+       aynı yerden çıkıyor. İlçenize ait sayfada o bölgede sık karşılaştığımız zemin,
+       sokak ve yapı stoğu notlarını bulabilirsiniz.</p>
+    <div class="dg-grup">{tel_btn()}{teklif_btn("dg dg-cerceve")}</div>
+  </div>
+</section>
+
+{guven_seridi()}
+{ilce_agi("Hizmet Verdiğimiz İlçeler")}
+
+<section class="bol"><div class="kap dar metin">
+  <h2>İlçe Fark Eder mi?</h2>
+  <p>Fiyat açısından doğrudan etmiyor ama iş açısından çok ediyor :) Aynı ölçüdeki iki
+     bina, sokağı ve zemini farklı olduğu için aynı kurulumu istemiyor. Fatih'te sokak
+     genişliği üç metrenin altına inebiliyor, Sarıyer'de bahçe eğimli, Beylikdüzü'nde
+     iskele otopark döşemesinin üstüne kuruluyor.</p>
+  <p>Bu yüzden her ilçe için ayrı sayfa yazdık — orada o bölgede sık karşılaştığımız
+     durumları anlattık. Kendi ilçenizi listeden seçip bakabilirsiniz.</p>
+  <p>{ana_link("Genel hizmet kapsamımız için %s sayfamıza bakabilirsiniz.")}</p>
+</div></section>
+
+{sss_bolum(ILCELER_SSS, "İlçeler Hakkında Sık Sorulanlar")}
+{harita_bolum()}
+{cta_band("İlçenizde iskele mi gerekiyor?",
           "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
 </main>
 {alt_bilgi()}"""
@@ -1776,7 +1841,7 @@ def hata404():
   <h2>Sık kullanılan sayfalar</h2>
   <ul class="ok-liste">{ilk}
     <li><a href="/iskele-kiralama-fiyatlari/">İskele kiralama fiyatları</a></li>
-    <li><a href="/#ilceler">İstanbul ilçeleri</a></li>
+    <li><a href="/ilceler/">İstanbul ilçeleri</a></li>
   </ul>
 </div></section>
 </main>
@@ -1800,6 +1865,7 @@ def main():
     for r in D.REHBERLER:
         yaz(f'/{r["slug"]}/', rehber_sayfasi(r)); yollar.append((f'/{r["slug"]}/', "0.7"))
     yaz("/hakkimizda/", hakkimizda_sayfasi()); yollar.append(("/hakkimizda/", "0.9"))
+    yaz("/ilceler/", ilceler_sayfasi()); yollar.append(("/ilceler/", "0.9"))
     yaz("/404.html", hata404())
 
     with open(os.path.join(KOK, "sitemap.xml"), "w", encoding="utf-8") as f:

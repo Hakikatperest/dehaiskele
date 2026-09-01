@@ -1050,3 +1050,35 @@ body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
     top:var(--ust-h); bottom:auto}
   .menu.acik{transform:translateY(0); visibility:visible}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGO BOYUTLARI (kullanıcı: "footerdeki 3x büyük, headerdeki daha büyük")
+   ⚠️ Logo 1.45:1 oranında ve içinde iskele kulesi + marka adı + slogan var;
+      küçük boyutta detay kayboluyor. Bar yükseklikleri buna göre ayarlandı.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{--ust-h:100px}
+.logo-im{height:clamp(58px,6.6vw,76px)}
+body.kaydi .ust{--ust-h:82px}
+body.kaydi .logo-im{height:clamp(52px,5.4vw,62px)}
+
+/* Alt bilgi logosu ~3 kat: 72px → 208px */
+.alt .logo-im{height:208px; max-width:100%}
+.alt-marka{display:flex; flex-direction:column; align-items:flex-start}
+
+@media (max-width:1120px){
+  :root{--ust-h:92px}
+  .logo-im{height:66px}
+}
+@media (max-width:860px){
+  :root{--ust-h:86px}
+  .logo-im{height:66px}
+  .alt .logo-im{height:170px}
+}
+@media (max-width:400px){
+  :root{--ust-h:78px}
+  .logo-im{height:58px}
+  .alt .logo-im{height:140px}
+}
+@media (max-width:340px){
+  .logo-im{height:52px}
+}
