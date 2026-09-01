@@ -342,7 +342,7 @@ TURLER = [
              "Açık alanda rüzgâr, balast ve ankraj planını doğrudan belirler.",
          ],
          sinir="Etkinlik iskelesi cephe iskelesiyle aynı hesap değildir; yük ve süre baştan netleşmeli."),
-    dict(slug="asansorlu-iskele", ad="Asma İskele (Askılı Platform)",
+    dict(slug="asma-iskele", ad="Asma İskele (Askılı Platform)",
          h1="Asma İskele ve Cephe Asansörü Kiralama",
          ozet="Yüksek bloklarda cepheyi baştan aşağı iskeleyle kaplamak yerine, çatıdan askıya "
                "alınan hareketli platformla çalışma.",

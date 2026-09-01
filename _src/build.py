@@ -547,7 +547,7 @@ def h2_govde(b, i):
                 f"oluyor.</p>"
                 f"<p>Bu yüzden telefonda ilk sorduğum şey kat sayısı oluyor. "
                 f'<a href="/cephe-iskelesi/">Cephe iskelesi</a> ve '
-                f'<a href="/asansorlu-iskele/">askılı platform</a> sayfalarında ikisini '
+                f'<a href="/asma-iskele/">asma iskele</a> sayfalarında ikisini '
                 f"karşılaştırdım.</p>")
 
     if has("firma nasıl seçilir", "güvenilir", "seçimi", "hangi iskele"):
@@ -655,7 +655,7 @@ def ilce_sayfasi(i):
     oneri = []
     if any(x in metin for x in ("yüksek", "rezidans", "plaza", "kule", "on iki", "blok")):
         oneri.append(("sistem-iskele", "Yüksek ve uzun cepheler için sistem (modüler) iskele"))
-        oneri.append(("asansorlu-iskele", "Belirli bir katın üstünde cephe asansörü / askılı platform"))
+        oneri.append(("asma-iskele", "Belirli bir katın üstünde cephe asansörü / askılı platform"))
     if any(x in metin for x in ("mantolama", "yalıtım", "güçlendirme", "dönüşüm")):
         oneri.append(("mantolama-iskelesi", "Isı yalıtımı işlerinde mantolama iskelesi"))
     if any(x in metin for x in ("boya", "sıva", "cephe")):
@@ -746,7 +746,7 @@ def ilce_tur_bolumu(i):
     def uygun(t):
         s = t["slug"]
         if any(x in metin for x in ("yüksek", "rezidans", "plaza", "blok", "on iki")):
-            if s in ("sistem-iskele", "asansorlu-iskele", "flansli-iskele", "merdivenli-iskele"):
+            if s in ("sistem-iskele", "asma-iskele", "flansli-iskele", "merdivenli-iskele"):
                 return True
         if any(x in metin for x in ("mantolama", "yalıtım", "güçlendirme", "dönüşüm")):
             if s in ("mantolama-iskelesi", "cephe-iskelesi", "h-tipi-iskele"):
@@ -755,7 +755,7 @@ def ilce_tur_bolumu(i):
             if s in ("endustriyel-iskele", "mobil-iskele", "kalip-alti-iskelesi", "cuplock-iskele"):
                 return True
         if any(x in metin for x in ("tarihi", "dar", "bitişik", "restorasyon", "koruma")):
-            if s in ("konsol-iskele", "mobil-iskele", "asansorlu-iskele"):
+            if s in ("konsol-iskele", "mobil-iskele", "asma-iskele"):
                 return True
         if any(x in metin for x in ("villa", "müstakil", "eğim", "yamaç", "bahçe")):
             if s in ("h-tipi-iskele", "kamali-iskele", "boya-badana-iskelesi"):
