@@ -1,0 +1,1056 @@
+# -*- coding: utf-8 -*-
+"""
+dehaiskele.com üreticisi.
+
+⛔ Üretilen HTML'i ELLE DÜZENLEME — bu betik her çalıştığında üzerine yazar.
+   Metin ve veri değişikliği `data.py`'ye yapılır.
+
+Çalıştırma:  python3 _src/build.py     (kök dizine 53 sayfa + sitemap/robots/404 yazar)
+Denetim:     python3 _src/denetim.py   (commit ÖNCESİ çalıştır, hatada 1 döner)
+"""
+import os, re, sys, html, hashlib, collections, json
+
+KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data as D
+
+S = D.SITE
+ALAN = S["alan"]
+
+# ── Varlık sürümleme ────────────────────────────────────────────────────────
+# GitHub Pages CSS/JS'i max-age=600 ile servis ediyor. Adres sabit kalırsa
+# tarayıcı yeni HTML'i eski CSS'le birleştiriyor (duvarkagidikaplama'da yaşandı:
+# stilsiz kalan SVG 300×150 varsayılan boyutuyla dev göründü). ⛔ Kaldırma.
+_surum_onbellek = {}
+def surum(yol):
+    if yol not in _surum_onbellek:
+        t = os.path.join(KOK, yol.lstrip("/"))
+        try:
+            h = hashlib.md5(open(t, "rb").read()).hexdigest()[:8]
+        except FileNotFoundError:
+            h = "0"
+        _surum_onbellek[yol] = f"{yol}?v={h}"
+    return _surum_onbellek[yol]
+
+def e(t):
+    return html.escape(str(t), quote=True)
+
+def kirp(metin, en_az=115, en_cok=168):
+    """meta description'ı denetimin kabul ettiği aralığa çeker."""
+    m = " ".join(metin.split())
+    if len(m) > en_cok:
+        kes = m[:en_cok]
+        if " " in kes:
+            kes = kes[:kes.rfind(" ")]
+        m = kes.rstrip(" ,;:.") + "."
+    return m
+
+# ── Komşuluk grafiği ────────────────────────────────────────────────────────
+# data.py'de bağlar tek yönlü yazılmış olabilir; iki yönlü hale getiriliyor
+# (seyrannakliyat'ta 7 bağ tek yönlüydü, ilçeler birbirine link vermiyordu).
+ILCE = {i["slug"]: i for i in D.ILCELER}
+def komsuluk_kur():
+    g = collections.defaultdict(set)
+    for i in D.ILCELER:
+        for k in i["komsu"]:
+            if k in ILCE:
+                g[i["slug"]].add(k)
+                g[k].add(i["slug"])
+    return {k: sorted(v) for k, v in g.items()}
+KOMSU = komsuluk_kur()
+
+def merkeze_uzaklik(slug):
+    """Eyüpsultan'daki merkezden kaç ilçe atlayarak gidiliyor (BFS).
+    ⚠️ Kilometre UYDURULMAZ — sadece bu graf mesafesi cümleye dönüşür."""
+    baslangic = S["merkez_slug"]
+    if slug == baslangic:
+        return 0
+    gorulen, sira = {baslangic}, [(baslangic, 0)]
+    while sira:
+        d, u = sira.pop(0)
+        for k in KOMSU.get(d, []):
+            if k not in gorulen:
+                if k == slug:
+                    return u + 1
+                gorulen.add(k)
+                sira.append((k, u + 1))
+    return None
+
+def merkez_cumlesi(i):
+    u = merkeze_uzaklik(i["slug"])
+    m = S["merkez_ilce"]
+    if u == 0:
+        return f"Depomuz {m}'da, yani {i['ad']} bizim kendi ilçemiz; ekip ve malzeme aynı noktadan çıkıyor."
+    if u == 1:
+        return f"Depomuz {m}'da, {i['ad']}'a komşu ilçe; malzeme aynı gün yola çıkıyor."
+    if u == 2:
+        return f"Depomuz {m}'da; {i['ad']}'a araç tek güzergâhla ulaşıyor, kurulum günü sabah başlıyor."
+    return f"Depomuz {m}'da; {i['ad']} tarafına giden araç günü baştan planlanarak çıkıyor."
+
+# ── Görsel ──────────────────────────────────────────────────────────────────
+# ⚠️ picture varsayılan olarak satır içi; CSS'te picture{display:block} var.
+#    srcset dosya sisteminden okunur, sabit liste yazmak 404 üretir.
+GENISLIKLER = (500, 900, 1600)
+def olcu(taban):
+    """Gerçek türevden en/boy okur; sabit oran yazmak yerleşim kayması yapıyordu."""
+    for g in GENISLIKLER:
+        y = os.path.join(KOK, "images", f"w{g}", taban + ".webp")
+        if os.path.exists(y):
+            try:
+                from PIL import Image
+                with Image.open(y) as im:
+                    return im.size
+            except Exception:
+                return (g, int(g * 2 / 3))
+    return None
+
+def gorsel_var(taban):
+    return any(os.path.exists(os.path.join(KOK, "images", f"w{g}", taban + ".webp"))
+               for g in GENISLIKLER)
+
+def gorsel(taban, alt, sinif="", boy="(min-width:1000px) 720px, 100vw", oncelik=False):
+    """Görsel yoksa BOŞ döner — placeholder kutusu basmaz, sayfa görselsiz de düzgün akar."""
+    if not gorsel_var(taban):
+        return ""
+    kaynak = []
+    for g in GENISLIKLER:
+        y = f"/images/w{g}/{taban}.webp"
+        if os.path.exists(os.path.join(KOK, y.lstrip("/"))):
+            kaynak.append(f"{y} {g}w")
+    o = olcu(taban)
+    boyut = f' width="{o[0]}" height="{o[1]}"' if o else ""
+    yukle = ' loading="eager" fetchpriority="high"' if oncelik else ' loading="lazy" decoding="async"'
+    return (f'<picture class="{sinif}"><img src="{kaynak[-1].split(" ")[0]}" '
+            f'srcset="{", ".join(kaynak)}" sizes="{boy}" alt="{e(alt)}"{boyut}{yukle}></picture>')
+
+# ── Ortak parçalar ──────────────────────────────────────────────────────────
+def tel_btn(sinif="dg dg-sari", metin=None):
+    return (f'<a class="{sinif}" href="tel:{S["tel_link"]}" '
+            f'data-ara="1">{svg_tel()}<span>{e(metin or S["tel"])}</span></a>')
+
+def wa_btn(mesaj="Merhaba, iskele kiralama için bilgi almak istiyorum.", sinif="dg dg-wa"):
+    from urllib.parse import quote
+    return (f'<a class="{sinif}" href="https://wa.me/{S["wa"]}?text={quote(mesaj)}" '
+            f'target="_blank" rel="noopener">{svg_wa()}<span>WhatsApp</span></a>')
+
+# ⚠️ Satır içi SVG'lere HER ZAMAN açık width/height ver: CSS hiç gelmezse
+#    varsayılan 300×150 ile devleşiyorlar (duvarkagidikaplama'da yaşandı).
+def svg_tel():
+    return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
+            '<path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.6c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.3 2.6z"/></svg>')
+
+def svg_wa():
+    return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
+            '<path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.8c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3a3 3 0 00-.9 2.2c0 1.3.9 2.5 1.1 2.7 1.3 2 2.8 2.9 4.6 3.4 1.1.3 1.7.3 2.2.2.6-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.4-.3z"/></svg>')
+
+def logo(koyu_zemin=True):
+    """⏳ GEÇİCİ logo — gerçek marka logosu gelince _src/logo.py ile türev üretilecek.
+    İskele çerçevesi (H tipi) siluetinden türetilmiş işaret + marka adı."""
+    return (
+        '<span class="logo">'
+        '<svg class="logo-im" viewBox="0 0 40 40" width="38" height="38" aria-hidden="true">'
+        '<rect x="3" y="4" width="34" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/>'
+        '<path d="M3 14h34M3 26h34M14 4v32M26 4v32" stroke="currentColor" stroke-width="2" opacity=".55"/>'
+        '<path d="M3 14l11 12M26 14l11 12" stroke="currentColor" stroke-width="2" opacity=".85"/>'
+        '</svg>'
+        '<span class="logo-ad"><b>DEHA</b><i>İSKELE</i></span></span>')
+
+MENU = [
+    ("/", "Ana Sayfa"),
+    ("/iskele-cesitleri/", "İskele Çeşitleri"),
+    ("/iskele-kiralama-fiyatlari/", "Fiyatlar"),
+    ("/iskele-is-guvenligi/", "İş Güvenliği"),
+    ("#ilceler", "İlçeler"),
+]
+
+def head(baslik, aciklama, yol, schema=""):
+    kanonik = ALAN + yol
+    ac = kirp(aciklama)
+    return f"""<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(baslik)}</title>
+<meta name="description" content="{e(ac)}">
+<link rel="canonical" href="{e(kanonik)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{e(S['marka'])}">
+<meta property="og:title" content="{e(baslik)}">
+<meta property="og:description" content="{e(ac)}">
+<meta property="og:url" content="{e(kanonik)}">
+<meta property="og:locale" content="tr_TR">
+<meta name="theme-color" content="#12161c">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon-48.png" sizes="48x48">
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+<link rel="stylesheet" href="{surum('/assets/style.css')}">
+<script>document.documentElement.classList.add('js')</script>
+{schema}
+</head>
+<body>
+<a class="atla" href="#ana">İçeriğe geç</a>
+"""
+
+def ust_header(aktif=""):
+    parcalar = []
+    for u, m in MENU:
+        sinif = ' class="aktif"' if u == aktif else ""
+        parcalar.append('<a href="%s"%s>%s</a>' % (u, sinif, e(m)))
+    ln = "".join(parcalar)
+    return f"""<header class="ust">
+  <div class="kap ust-ic">
+    <a class="logo-bag" href="/" aria-label="{e(S['marka'])} ana sayfa">{logo()}</a>
+    <nav class="menu" id="menu" aria-label="Ana menü">{ln}</nav>
+    <div class="ust-ara">
+      {tel_btn("dg dg-sari dg-kucuk")}
+      <button class="hamburger" id="hamburger" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+"""
+
+def kirinti(parcalar):
+    """parcalar: [(ad, url|None)] — son eleman linksiz."""
+    ic, ldj = [], []
+    for n, (ad, u) in enumerate(parcalar, 1):
+        ic.append(f'<a href="{u}">{e(ad)}</a>' if u else f'<span aria-current="page">{e(ad)}</span>')
+        ldj.append({"@type": "ListItem", "position": n, "name": ad,
+                    **({"item": ALAN + u} if u else {})})
+    sema = ('<script type="application/ld+json">' +
+            json.dumps({"@context": "https://schema.org", "@type": "BreadcrumbList",
+                        "itemListElement": ldj}, ensure_ascii=False) + '</script>')
+    return f'<nav class="kirinti" aria-label="Site haritası"><div class="kap">{"".join(ic)}</div></nav>{sema}'
+
+def w4_kredi():
+    """Web4Medya tasarım imzası.
+    ⚠️ Bağlantı YALNIZCA marka adını sarar — 'Web Tasarım:' etiketi <a> DIŞINDA kalır.
+    53 sayfadan çıkan site geneli anahtar kelimeli tasarımcı linki Google'ın link
+    şeması tarifine girer. Kullanıcı risk tablosunu görüp bunu seçti. ⛔ Geri çevirme."""
+    return ('<div class="w4"><span class="w4-bag">'
+            '<span class="w4-etiket">Web Tasarım:</span> '
+            '<a class="w4-ad" href="https://www.web4medya.com/" target="_blank" rel="noopener">'
+            'Web<span class="w4-d">4</span>Medya</a></span></div>')
+
+def alt_bilgi():
+    ilce_ln = " · ".join(
+        f'<a href="/{i["slug"]}-iskele-kiralama/">{e(i["ad"])}</a>' for i in D.ILCELER)
+    tur_ln = "".join(f'<li><a href="/{t["slug"]}/">{e(t["ad"])}</a></li>' for t in D.TURLER)
+    reh_ln = "".join(f'<li><a href="/{r["slug"]}/">{e(r["ad"])}</a></li>' for r in D.REHBERLER)
+    return f"""<footer class="alt">
+  <div class="kap">
+    <div class="alt-ust">
+      <div class="alt-marka">
+        <a class="logo-bag" href="/">{logo()}</a>
+        <p>{e(S['aciklama'])}</p>
+        {tel_btn("dg dg-sari")}
+      </div>
+      <div class="alt-sut"><h3>İskele Türleri</h3><ul>{tur_ln}</ul></div>
+      <div class="alt-sut"><h3>Rehberler</h3><ul>{reh_ln}</ul></div>
+      <div class="alt-sut alt-iletisim"><h3>İletişim</h3>
+        <p class="adres">{e(S['adres'])}</p>
+        <p><a href="tel:{S['tel_link']}">{e(S['tel'])}</a></p>
+        <p><a href="https://www.google.com/maps/search/?api=1&amp;query={e(S['adres'].replace(' ', '+'))}"
+           target="_blank" rel="noopener">Yol tarifi al</a></p>
+      </div>
+    </div>
+    <div class="alt-ilceler"><h3>İstanbul'un tüm ilçelerinde iskele kiralama</h3>
+      <p class="ilce-agi">{ilce_ln}</p></div>
+    <div class="alt-son">
+      <p>&copy; 2026 {e(S['marka'])} · Tüm hakları saklıdır.</p>
+      {w4_kredi()}
+    </div>
+  </div>
+</footer>
+<div class="sabit-ara">
+  <a href="tel:{S['tel_link']}">{svg_tel()}<span>Hemen Ara</span></a>
+  <a href="https://wa.me/{S['wa']}" target="_blank" rel="noopener">{svg_wa()}<span>WhatsApp</span></a>
+</div>
+<script src="{surum('/assets/app.js')}" defer></script>
+</body>
+</html>
+"""
+
+# ── JSON-LD ─────────────────────────────────────────────────────────────────
+def ldj(nesne):
+    return ('<script type="application/ld+json">' +
+            json.dumps(nesne, ensure_ascii=False, separators=(",", ":")) + '</script>')
+
+def isletme_semasi(alan_adi=None):
+    """⚠️ aggregateRating BİLİNÇLİ olarak YOK — gerçek doğrulanabilir değerlendirme
+    verisi olmadan puan işaretlemesi yapılmaz (emsal: web4medya google-reklam-uzmani)."""
+    n = {
+        "@context": "https://schema.org",
+        "@type": "HomeAndConstructionBusiness",
+        "@id": ALAN + "/#isletme",
+        "name": S["marka"],
+        "url": ALAN + "/",
+        "telephone": S["tel_link"],
+        "description": S["aciklama"],
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": S["adres_sokak"],
+            "addressLocality": S["adres_ilce"],
+            "addressRegion": "İstanbul",
+            "postalCode": S["adres_pk"],
+            "addressCountry": "TR",
+        },
+        "areaServed": {"@type": "City", "name": "İstanbul"},
+    }
+    if alan_adi:
+        n["areaServed"] = {"@type": "AdministrativeArea", "name": alan_adi + ", İstanbul"}
+    return ldj(n)
+
+def sss_semasi(sorular):
+    return ldj({"@context": "https://schema.org", "@type": "FAQPage",
+                "mainEntity": [{"@type": "Question", "name": s,
+                                "acceptedAnswer": {"@type": "Answer", "text": c}}
+                               for s, c in sorular]})
+
+# ── Bileşenler ──────────────────────────────────────────────────────────────
+def hero_h1(satirlar):
+    return ('<h1 class="hb">' +
+            "".join(f'<span class="l"><span>{e(s)}</span></span>' for s in satirlar) +
+            '</h1>')
+
+def guven_seridi():
+    """⚠️ Buradaki maddeler data.ONAYLI_IDDIALAR ile sınırlı; kullanıcı onayı olmadan
+    'sigortalı', '20 yıl tecrübe', '7/24' gibi iddia EKLEME."""
+    ogeler = [
+        ("İstanbul'un tüm ilçeleri", "Avrupa ve Anadolu yakasının tamamına kurulum"),
+        ("Keşifle net ölçü", "Cephe metrekaresi yerinde ölçülür, tahminle fiyat verilmez"),
+        ("Kurulum ve söküm bizde", "İskeleyi biz kurar, iş bitince biz sökeriz"),
+    ]
+    ic = "".join(f'<li><strong>{e(a)}</strong><span>{e(b)}</span></li>' for a, b in ogeler)
+    return f'<section class="serit"><div class="kap"><ul>{ic}</ul></div></section>'
+
+def sss_bolum(sorular, baslik="Sık Sorulan Sorular"):
+    ic = "".join(
+        f'<details class="sss-o"><summary>{e(s)}</summary><div class="sss-c"><p>{c}</p></div></details>'
+        for s, c in sorular)
+    return (f'<section class="bol sss"><div class="kap dar">'
+            f'<h2>{e(baslik)}</h2>{ic}</div></section>')
+
+def cta_band(baslik, metin):
+    return f"""<section class="cta"><div class="kap dar">
+  <h2>{e(baslik)}</h2><p>{e(metin)}</p>
+  <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+</div></section>"""
+
+def hesaplayici():
+    """Cephe metrekaresi hesabı. ⚠️ TL basmaz — fiyat listesi henüz onaylanmadı
+    (data.FIYATLAR boş). Fiyat gelince buraya tutar satırı eklenecek."""
+    return """<section class="bol hesap" id="hesap"><div class="kap dar">
+  <h2>Cephe Metrekaresi Hesaplayıcı</h2>
+  <p class="giris">İskele kirası cephe metrekaresi üzerinden konuşulur. Binanızın bir cephesinin
+     enini ve kat sayısını girin; kaç metrekare iskele gerektiğini kabaca görün. Kesin rakam
+     keşifte, gerçek ölçüyle çıkar.</p>
+  <div class="hesap-kutu">
+    <label>Cephe eni (metre)
+      <input type="number" id="h-en" min="1" max="200" step="0.5" value="12" inputmode="decimal"></label>
+    <label>Kat sayısı
+      <input type="number" id="h-kat" min="1" max="30" step="1" value="5" inputmode="numeric"></label>
+    <label>Kat yüksekliği (metre)
+      <input type="number" id="h-yuk" min="2" max="6" step="0.1" value="2.9" inputmode="decimal"></label>
+    <div class="hesap-sonuc" id="h-sonuc" aria-live="polite"></div>
+  </div>
+  <p class="not">Hesap yaklaşıktır: çatı üstü çıkma, balkon, giriş saçağı ve zemin kotu farkı
+     metrekareyi değiştirir. Birden fazla cephe kurulacaksa her cepheyi ayrı hesaplayıp toplayın.</p>
+  <div class="dg-grup">{ara}</div>
+</div></section>""".replace("{ara}", tel_btn(metin="Ölçüyle birlikte arayın: " + S["tel"]))
+
+def tur_kartlari(baslik="İskele Türleri", haric=None):
+    kart = []
+    for t in D.TURLER:
+        if t["slug"] == haric:
+            continue
+        kart.append(
+            f'<a class="kart gel gel-3b" href="/{t["slug"]}/">'
+            f'<h3>{e(t["ad"])}</h3><p>{e(t["ozet"])}</p>'
+            f'<span class="kart-ok">İncele</span></a>')
+    return (f'<section class="bol"><div class="kap"><h2>{e(baslik)}</h2>'
+            f'<div class="izgara">{"".join(kart)}</div></div></section>')
+
+def ilce_agi(baslik="İstanbul'un Tüm İlçelerinde İskele Kiralama", haric=None):
+    """39 ilçeye giden bağlantı ağı. Anasayfada yaka yaka gruplanır."""
+    bol = []
+    for yaka in ("Avrupa", "Anadolu"):
+        ln = "".join(
+            f'<li><a href="/{i["slug"]}-iskele-kiralama/">{e(i["ad"])}</a></li>'
+            for i in D.ILCELER if i["yaka"] == yaka and i["slug"] != haric)
+        bol.append(f'<div class="yaka"><h3>{yaka} Yakası</h3><ul class="ilce-liste">{ln}</ul></div>')
+    return (f'<section class="bol ilceler" id="ilceler"><div class="kap"><h2>{e(baslik)}</h2>'
+            f'<p class="giris">Merkezimiz {e(S["merkez_ilce"])}; kurulum ekibi İstanbul\'un iki '
+            f'yakasına da aynı depodan çıkıyor. İlçenize ait sayfada o bölgedeki yapı stoğu ve '
+            f'kurulum şartlarıyla ilgili notları bulabilirsiniz.</p>'
+            f'<div class="yakalar">{"".join(bol)}</div></div></section>')
+
+# ── İlçe sayfası ────────────────────────────────────────────────────────────
+def ilce_yolu(i):
+    return f'/{i["slug"]}-iskele-kiralama/'
+
+def ilce_sss(i):
+    ad = i["ad"]
+    m = ", ".join(i["mahalle"][:3])
+    return [
+        (f"{ad}'da iskele kiralama fiyatı nasıl belirleniyor?",
+         "Fiyat üç şeyden çıkıyor: cephe metrekaresi, iskelenin kaç ay duracağı ve kurulum-söküm "
+         "işçiliği. Metrekare, cephe eni ile bina yüksekliğinin çarpımı. Telefonda kat sayısını ve "
+         "cephe enini söylerseniz aralık verebiliriz; kesin rakam için keşfe geliyoruz, çünkü "
+         "balkon, çıkma ve zemin kotu ölçüyü değiştiriyor."),
+        (f"{ad}'da keşif ücretli mi?",
+         "Keşifte cepheyi ölçüyoruz, zemini ve aracın yanaşacağı yeri görüyoruz. Ölçü almadan "
+         "verilen rakam ya size fazla ya bize eksik geliyor; o yüzden önce yerinde bakıyoruz."),
+        (f"{ad}'da iskele ne kadar sürede kuruluyor?",
+         f"{i['vurgu'].split(';')[0].strip().capitalize()}. Normal bir apartman cephesinde kurulum "
+         "çoğunlukla bir gün sürüyor; yüksek bloklarda ve zor erişimli sokaklarda bu süre uzayabiliyor. "
+         "Kurulum gününü baştan söylüyoruz ki bina da kendi işini ona göre planlasın."),
+        (f"İskele {ad}'da ne kadar süre kalabilir?",
+         "Kira aylık işliyor. Boya işi genelde birkaç haftada bitiyor, mantolama ve güçlendirme "
+         "aylara yayılıyor. Süreyi baştan konuşup yazıyoruz; uzarsa aylık üzerinden devam ediyor."),
+        (f"{m} taraflarına da geliyor musunuz?",
+         f"Evet. {ad}'ın tüm mahallelerine kurulum yapıyoruz. " + merkez_cumlesi(i)),
+        ("İskele kurulduktan sonra sorumluluk kimde?",
+         "İskeleyi biz kuruyoruz ve kurulum bittiğinde teslim kontrolü yapıyoruz. Kullanım "
+         "süresince iskelede değişiklik yapılmaması, korkuluk ve platformların yerinden "
+         "oynatılmaması gerekiyor. Bir şey söküldüyse haber verin, biz gelip yerine takalım."),
+    ]
+
+def ilce_sayfasi(i):
+    ad, yol = i["ad"], ilce_yolu(i)
+    komsular = [ILCE[k] for k in KOMSU.get(i["slug"], []) if k in ILCE]
+    sorular = ilce_sss(i)
+    baslik = f"{ad} İskele Kiralama ve Cephe İskelesi | {S['marka']}"
+    aciklama = (f"{ad} genelinde cephe iskelesi kiralama, kurulum ve söküm. Keşifle net ölçü, "
+                f"aylık kira, {S['merkez_ilce']} merkezli ekip. {S['tel']}")
+
+    sema = (isletme_semasi(ad) + sss_semasi(sorular) +
+            ldj({"@context": "https://schema.org", "@type": "Service",
+                 "serviceType": "İskele kiralama",
+                 "name": f"{ad} iskele kiralama",
+                 "provider": {"@id": ALAN + "/#isletme"},
+                 "areaServed": {"@type": "AdministrativeArea", "name": f"{ad}, İstanbul"},
+                 "url": ALAN + yol}))
+
+    mahalle_ln = ", ".join(i["mahalle"])
+    komsu_ln = "".join(
+        f'<li><a href="{ilce_yolu(k)}">{e(k["ad"])} iskele kiralama</a></li>' for k in komsular)
+
+    # Yapı stoğuna göre tür önerisi — ilçe verisinden türetilir, elle yazılmaz.
+    metin = " ".join([i["doku"], i["vurgu"]]).lower()
+    oneri = []
+    if any(x in metin for x in ("yüksek", "rezidans", "plaza", "kule", "on iki", "blok")):
+        oneri.append(("sistem-iskele", "Yüksek ve uzun cepheler için sistem (modüler) iskele"))
+        oneri.append(("asansorlu-iskele", "Belirli bir katın üstünde cephe asansörü / askılı platform"))
+    if any(x in metin for x in ("mantolama", "yalıtım", "güçlendirme", "dönüşüm")):
+        oneri.append(("mantolama-iskelesi", "Isı yalıtımı işlerinde mantolama iskelesi"))
+    if any(x in metin for x in ("boya", "sıva", "cephe")):
+        oneri.append(("boya-badana-iskelesi", "Dış cephe boyası için kısa süreli cephe iskelesi"))
+    if any(x in metin for x in ("depo", "fabrika", "imalathane", "sanayi", "tersane", "iç mekân")):
+        oneri.append(("kule-iskele", "İç mekân ve nokta işler için kule (seyyar) iskele"))
+    if not oneri:
+        oneri.append(("cephe-iskelesi", "Apartman ve site cepheleri için standart cephe iskelesi"))
+    gorulen, tekil = set(), []
+    for s, a in oneri:
+        if s not in gorulen:
+            gorulen.add(s); tekil.append((s, a))
+    oneri_ln = "".join(f'<li><a href="/{s}/">{e(a)}</a></li>' for s, a in tekil[:4])
+
+    return head(baslik, aciklama, yol, sema) + ust_header() + f"""
+{kirinti([("Ana Sayfa", "/"), ("İlçeler", "/#ilceler"), (ad, None)])}
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1([f"{ad} İskele Kiralama"])}
+    <p class="hero-alt">{e(ad)} ve çevresinde cephe iskelesi kurulumu, aylık kiralama ve söküm.
+       {e(merkez_cumlesi(i))}</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn(f"Merhaba, {ad} için iskele kiralamak istiyorum.")}</div>
+  </div>
+</section>
+
+{guven_seridi()}
+
+<section class="bol"><div class="kap dar metin">
+  <h2>{e(ad)}'da Cephe İskelesi Kurulumu</h2>
+  <p>{e(ad)}'ın yapı stoğu ağırlıklı olarak {e(i['doku'])}. İskele işi de buna göre şekilleniyor:
+     aynı ölçüdeki iki bina, sokağı ve zemini farklı olduğu için aynı kurulumu istemiyor.</p>
+  <p>{e(i['vurgu'])}.</p>
+  <p>{e(mahalle_ln)} başta olmak üzere {e(ad)}'ın tüm mahallelerine kurulum yapıyoruz.
+     Keşfe gelirken bakılan üç şey hep aynı: cephenin gerçek ölçüsü, iskelenin oturacağı zemin
+     ve malzemeyi indirecek aracın yanaşacağı yer. Bu üçü netleşmeden kurulum günü verilmiyor.</p>
+
+  <h2>{e(ad)} İskele Kiralama Fiyatları Nasıl Çıkıyor?</h2>
+  <p>İskele kirası cephe metrekaresi üzerinden konuşuluyor. Metrekare, cephe eni ile bina
+     yüksekliğinin çarpımı — yani beş katlı, on iki metre enindeki bir cephe kabaca 170-180 m²
+     ediyor. Buna kurulum ve söküm işçiliği ile nakliye ekleniyor, kira ise aylık işliyor.</p>
+  <p>Kendi cephenizin kaç metrekare olduğunu <a href="/#hesap">cephe metrekaresi hesaplayıcısından</a>
+     kabaca görebilir, ölçüyle birlikte arayabilirsiniz. Fiyatı neyin değiştirdiğini ayrıntısıyla
+     anlattığımız <a href="/iskele-kiralama-fiyatlari/">iskele kiralama fiyatları rehberi</a> de
+     yardımcı olur.</p>
+
+  <h2>{e(ad)}'da Hangi İskele Türü Uygun?</h2>
+  <p>Doğru tür binaya ve işe göre değişiyor. {e(ad)} için sık çıkan seçenekler:</p>
+  <ul class="ok-liste">{oneri_ln}</ul>
+  <p>Hepsinin yan yana karşılaştırmasını <a href="/iskele-cesitleri/">iskele çeşitleri</a>
+     sayfasında bulabilirsiniz.</p>
+
+  <h2>{e(ad)}'da Kurulum ve Söküm</h2>
+  <p>Kurulum günü ekip sabah geliyor, zemin hazırlanıyor, taban plakaları terazisine oturtuluyor
+     ve iskele kat kat yükseliyor. Cepheye bağlantılar yapılmadan üst katlara çıkılmıyor.
+     Kurulum bitince korkuluk, platform ve bağlantılar tek tek kontrol ediliyor; iskele ancak
+     ondan sonra teslim ediliyor.</p>
+  <p>İş bitince sökümü de biz yapıyoruz — malzeme sizde kalmıyor, depolama derdi olmuyor.
+     Sürecin tamamını <a href="/iskele-kurulum-sokum-sureci/">kurulum ve söküm rehberinde</a>
+     adım adım anlattık.</p>
+</div></section>
+
+{sss_bolum(sorular, f"{ad} İskele Kiralama — Sık Sorulan Sorular")}
+
+<section class="bol komsu"><div class="kap">
+  <h2>Yakın İlçeler</h2>
+  <p class="giris">{e(ad)}'a komşu ilçelerde de aynı ekip çalışıyor:</p>
+  <ul class="ilce-liste">{komsu_ln}</ul>
+</div></section>
+
+{cta_band(f"{ad}'da iskele mi gerekiyor?",
+          "Cephe enini ve kat sayısını söyleyin, aralık verelim; ölçüyü yerinde alıp net fiyatı çıkaralım.")}
+</main>
+{alt_bilgi()}"""
+
+# ── İskele türü sayfası ─────────────────────────────────────────────────────
+def tur_sss(t):
+    return [
+        (f"{t['ad']} hangi işler için uygun?", e(t["kimin"]) + "."),
+        (f"{t['ad']} için keşif gerekiyor mu?",
+         "Gerekiyor. Ölçü, zemin ve erişim görülmeden verilen rakam tahmin olur. Keşifte cepheyi "
+         "ölçüp aracın yanaşacağı yeri de belirliyoruz."),
+        (f"{t['ad']} ne zaman doğru seçim olmaz?", e(t["sinir"])),
+        ("Kurulumu siz mi yapıyorsunuz?",
+         "Evet, kurulum ve söküm bize ait. Malzemeyi bırakıp gitmiyoruz; iş bitince toplayıp "
+         "götürüyoruz, depolama ve bakım sizin derdiniz olmuyor."),
+    ]
+
+def tur_sayfasi(t):
+    yol = f'/{t["slug"]}/'
+    sorular = tur_sss(t)
+    baslik = f"{t['h1']} — İstanbul | {S['marka']}"
+    aciklama = f"{t['ozet']} İstanbul genelinde kurulum ve söküm dahil. {S['tel']}"
+    sema = (isletme_semasi() + sss_semasi(sorular) +
+            ldj({"@context": "https://schema.org", "@type": "Service",
+                 "serviceType": t["ad"], "name": t["h1"],
+                 "provider": {"@id": ALAN + "/#isletme"},
+                 "areaServed": {"@type": "City", "name": "İstanbul"},
+                 "url": ALAN + yol}))
+    teknik_ln = "".join(f"<li>{e(x)}</li>" for x in t["teknik"])
+    return head(baslik, aciklama, yol, sema) + ust_header() + f"""
+{kirinti([("Ana Sayfa", "/"), ("İskele Çeşitleri", "/iskele-cesitleri/"), (t["ad"], None)])}
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1([t["h1"]])}
+    <p class="hero-alt">{e(t["ozet"])}</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn(f"Merhaba, {t['ad']} hakkında bilgi almak istiyorum.")}</div>
+  </div>
+</section>
+
+{guven_seridi()}
+
+<section class="bol"><div class="kap dar metin">
+  <h2>Kimler İçin?</h2>
+  <p>{e(t["kimin"])}.</p>
+
+  <h2>Kurulumda Neye Dikkat Ediliyor?</h2>
+  <ul class="ok-liste">{teknik_ln}</ul>
+
+  <h2>Sınırı Nerede?</h2>
+  <p>{e(t["sinir"])} Hangi sistemin sizin işinize oturduğunu keşifte netleştiriyoruz; yanlış tür
+     hem para hem zaman kaybı oluyor.</p>
+
+  <h2>Fiyat Nasıl Çıkıyor?</h2>
+  <p>Kira cephe metrekaresi ve süre üzerinden, kurulum-söküm ise işçilik olarak hesaplanıyor.
+     <a href="/#hesap">Cephe metrekaresi hesaplayıcısıyla</a> kendi ölçünüzü kabaca çıkarabilir,
+     ayrıntı için <a href="/iskele-kiralama-fiyatlari/">fiyat rehberine</a> bakabilirsiniz.</p>
+
+  <h2>İş Güvenliği</h2>
+  <p>Korkuluk, platform genişliği ve bağlantı düzeni tercih meselesi değil; mevzuatın belirlediği
+     asgari şartlar var. Bunları <a href="/iskele-is-guvenligi/">iskelede iş güvenliği</a>
+     sayfasında Resmî Gazete referanslarıyla yazdık.</p>
+</div></section>
+
+{sss_bolum(sorular)}
+{tur_kartlari("Diğer İskele Sistemleri", haric=t["slug"])}
+{cta_band("Hangi iskele sizin işinize uyar?",
+          "İşi ve binayı anlatın, uygun sistemi birlikte seçelim. Keşif için ölçüyü yerinde alıyoruz.")}
+</main>
+{alt_bilgi()}"""
+
+# ── Anasayfa ────────────────────────────────────────────────────────────────
+ANA_SSS = [
+    ("İskele kiralama fiyatı nasıl hesaplanıyor?",
+     "Cephe metrekaresi (cephe eni × bina yüksekliği), iskelenin kaç ay duracağı, kurulum-söküm "
+     "işçiliği ve nakliye. Bu dört kalem birleşince fiyat çıkıyor. Kat sayısı ve cephe enini "
+     "söylerseniz telefonda aralık verebiliriz."),
+    ("İskeleyi siz mi kuruyorsunuz?",
+     "Evet. Kurulum da söküm de bize ait. Malzemeyi bırakıp gitmiyoruz, iş bitince toplayıp "
+     "götürüyoruz; depolama ve bakım sizin derdiniz olmuyor."),
+    ("İstanbul'un hangi ilçelerine geliyorsunuz?",
+     "Avrupa ve Anadolu yakasının tamamına. Merkezimiz Eyüpsultan; ekip iki yakaya da aynı "
+     "depodan çıkıyor. İlçenize ait sayfada o bölgeye özgü notları bulabilirsiniz."),
+    ("İskele en az ne kadar süreyle kiralanıyor?",
+     "Kira aylık işliyor. Dış cephe boyası birkaç haftada bitebiliyor, mantolama ve güçlendirme "
+     "aylara yayılıyor. Süreyi baştan konuşuyoruz, uzarsa aylık üzerinden devam ediyor."),
+    ("Keşif için ücret alıyor musunuz?",
+     "Keşifte cepheyi ölçüyor, zemini ve aracın yanaşacağı yeri görüyoruz. Ölçü almadan verilen "
+     "rakam tahmin olur; o yüzden önce yerinde bakmayı tercih ediyoruz."),
+    ("Kurulum ne kadar sürüyor?",
+     "Normal bir apartman cephesinde çoğunlukla bir gün. Yüksek bloklarda, dar sokaklarda ve "
+     "eğimli zeminde bu süre uzuyor. Kurulum gününü baştan söylüyoruz ki bina da planını yapsın."),
+]
+
+def anasayfa():
+    yol = "/"
+    baslik = f"{S['marka']} — İstanbul İskele Kiralama, Cephe İskelesi Kurulumu"
+    aciklama = ("İstanbul'un tüm ilçelerinde cephe iskelesi kiralama, kurulum ve söküm. "
+                "Keşifle net ölçü, aylık kira. Eyüpsultan merkezli ekip: " + S["tel"])
+    sema = (isletme_semasi() + sss_semasi(ANA_SSS) +
+            ldj({"@context": "https://schema.org", "@type": "WebSite",
+                 "name": S["marka"], "url": ALAN + "/",
+                 "inLanguage": "tr-TR"}))
+    return head(baslik, aciklama, yol, sema) + ust_header(aktif="/") + f"""
+<main id="ana">
+<section class="hero hero-ana">
+  <div class="kap">
+    <p class="hero-ust">{e(S['sehir'])} · Cephe İskelesi Kiralama</p>
+    {hero_h1(["İskeleyi biz kurarız,", "siz işinize bakın."])}
+    <p class="hero-alt">{e(S['slogan'])}. Keşifte cepheyi ölçüyoruz, metrekare üzerinden net
+       konuşuyoruz; kurulum da söküm de bize ait.</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+    <p class="hero-not">Merkez: {e(S['merkez_ilce'])} · Avrupa ve Anadolu yakasının tamamı</p>
+  </div>
+</section>
+
+{guven_seridi()}
+{tur_kartlari("Hangi İskeleye İhtiyacınız Var?")}
+{hesaplayici()}
+
+<section class="bol surec"><div class="kap dar metin">
+  <h2>Keşiften Söküme Süreç</h2>
+  <ol class="adim">
+    <li><strong>Arayın, kabaca anlatın.</strong> Kat sayısı ve cephe eni yeterli; telefonda
+        aralık verelim.</li>
+    <li><strong>Keşif.</strong> Cepheyi ölçüyoruz, zemini ve aracın yanaşacağı yeri görüyoruz.
+        Balkon, çıkma ve kot farkı burada ortaya çıkıyor.</li>
+    <li><strong>Net fiyat ve tarih.</strong> Metrekare, süre ve işçilik netleşince rakam ve
+        kurulum günü belli oluyor.</li>
+    <li><strong>Kurulum.</strong> Zemin hazırlanır, taban plakaları terazisine oturur, iskele
+        kat kat yükselir; bağlantılar yapılmadan üste çıkılmaz.</li>
+    <li><strong>Teslim kontrolü.</strong> Korkuluk, platform ve bağlantılar tek tek kontrol
+        edilir, iskele ondan sonra teslim edilir.</li>
+    <li><strong>Söküm.</strong> İş bitince haber verin; sökümü biz yapıyoruz, malzeme sizde
+        kalmıyor.</li>
+  </ol>
+</div></section>
+
+{sss_bolum(ANA_SSS)}
+{ilce_agi()}
+{cta_band("Cephenizi ölçelim, net konuşalım",
+          "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
+</main>
+{alt_bilgi()}"""
+
+# ── Rehber sayfaları ────────────────────────────────────────────────────────
+# ⚠️ MEVZUAT REFERANSLARI: Yapı İşlerinde İSG Yönetmeliği (RG 05.10.2013 / 28786) ve
+#    İş Ekipmanlarının Kullanımında Sağlık ve Güvenlik Şartları Yönetmeliği
+#    (RG 25.04.2013 / 28628). Sayısal asgari şartlar (korkuluk 100 cm, topuk levhası
+#    15 cm, platform genişliği 60 cm) bu yönetmeliklerin ekleri kaynaklıdır.
+#    ⏳ Yayından önce kullanıcı/uzman teyidi alınacak.
+
+def r_fiyat():
+    sorular = [
+        ("İskele kirası neye göre hesaplanıyor?",
+         "Cephe metrekaresi ve süre. Metrekare, cephe eni ile bina yüksekliğinin çarpımı; süre "
+         "ise iskelenin kaç ay duracağı. Bu ikisinin üstüne kurulum-söküm işçiliği ve nakliye "
+         "biniyor."),
+        ("Kurulum ve söküm kira fiyatına dahil mi?",
+         "İkisi ayrı kalem olarak konuşuluyor. Kısa süreli işlerde kurulum-söküm toplam maliyette "
+         "kiradan büyük yer tutabiliyor; uzun süreli şantiyelerde ise kira öne geçiyor."),
+        ("Aynı metrekarede fiyat neden değişiyor?",
+         "Erişim ve zemin. Dar sokakta kamyon yanaşamıyorsa malzeme elden taşınıyor, eğimli "
+         "zeminde ayak kotları ayrı ayrı ayarlanıyor, yüksek blokta bağlantı sayısı artıyor. "
+         "Metrekare aynı olsa da işçilik değişiyor."),
+        ("Telefonda fiyat alabilir miyim?",
+         "Aralık alabilirsiniz: kat sayısı ve cephe eni yeterli. Kesin rakam keşiften sonra "
+         "çıkıyor, çünkü balkon, çıkma, saçak ve zemin kotu ölçüyü değiştiriyor."),
+    ]
+    govde = """
+  <p>İskele fiyatı tek bir rakam değil, dört kalemin toplamı. Bunları ayrı ayrı bilirseniz
+     aldığınız teklifi de karşılaştırabilirsiniz.</p>
+
+  <h2>1. Cephe metrekaresi</h2>
+  <p>İskelenin ölçü birimi metrekare. Hesap basit: <strong>cephe eni × bina yüksekliği</strong>.
+     Beş katlı, kat yüksekliği 2,9 metre olan bir binanın yüksekliği yaklaşık 14,5 metre;
+     cephe eni 12 metreyse iskele kabaca 174 m² tutuyor.</p>
+  <p>Birden fazla cephe kurulacaksa her cephe ayrı hesaplanıp toplanıyor. Kendi ölçünüzü
+     <a href="/#hesap">cephe metrekaresi hesaplayıcısından</a> çıkarabilirsiniz.</p>
+
+  <h2>2. Süre</h2>
+  <p>Kira aylık işliyor. Dış cephe boyası çoğu zaman birkaç haftada bitiyor; mantolama, sıva
+     yenileme ve güçlendirme işleri aylara yayılıyor. Süreyi olduğundan kısa söylemek sonradan
+     hesabı şaşırtıyor — işin gerçek takvimini baştan konuşmak daha sağlıklı.</p>
+
+  <h2>3. Kurulum ve söküm işçiliği</h2>
+  <p>Bu kalem metrekareyle doğru orantılı değil; işin zorluğuyla orantılı. Dar sokak, eğimli
+     zemin, yüksek blok ve yaya trafiği kurulum süresini uzatıyor. Kısa süreli işlerde bu kalem
+     kiradan büyük çıkabiliyor, bu yüzden "aylık ne kadar?" sorusu tek başına yeterli olmuyor.</p>
+
+  <h2>4. Nakliye</h2>
+  <p>Malzemenin depodan sahaya gidip gelmesi. Mesafe ve aracın yanaşabildiği nokta belirleyici;
+     kamyon sokağa giremiyorsa malzeme elden taşınıyor ve bu süre işçiliğe yansıyor.</p>
+
+  <h2>Teklifleri karşılaştırırken</h2>
+  <ul class="ok-liste">
+    <li>Rakamın <strong>hangi metrekare</strong> için verildiğini sorun — cephe ölçüsü mü,
+        iskelenin kaplayacağı alan mı?</li>
+    <li><strong>Kurulum-söküm dahil mi</strong>, ayrı mı?</li>
+    <li>Kira <strong>hangi süre</strong> için? Uzarsa nasıl işleyecek?</li>
+    <li><strong>Nakliye</strong> ve varsa <strong>koruma filesi</strong> fiyata dahil mi?</li>
+    <li>Söküm sonrası <strong>alan temizliği</strong> kimde?</li>
+  </ul>
+  <p>Ölçü almadan telefonda net rakam veren teklif, çoğu zaman keşiften sonra değişiyor.
+     Aralık vermek başka, kesin fiyat vermek başka.</p>
+"""
+    return govde, sorular
+
+def r_guvenlik():
+    sorular = [
+        ("İskelede korkuluk zorunlu mu?",
+         "Evet. Yapı İşlerinde İş Sağlığı ve Güvenliği Yönetmeliği (RG 05.10.2013 / 28786) "
+         "düşme riski bulunan çalışma yerlerinde korkuluk sistemi arıyor: ana korkuluk, ara "
+         "korkuluk ve malzeme düşmesini önleyen topuk levhası birlikte."),
+        ("İskeleyi herkes kurabilir mi?",
+         "Hayır. Mevzuat iskelelerin kurulması, sökülmesi ve önemli değişikliklerinin ehil "
+         "kişilerin gözetiminde, konuyla ilgili eğitim almış çalışanlarca yapılmasını istiyor."),
+        ("İskele kurulduktan sonra kontrol gerekiyor mu?",
+         "Gerekiyor. Kurulum sonrası teslim kontrolü yapılıyor; ayrıca kullanım süresince, "
+         "özellikle fırtına gibi olaylardan sonra ve iskelede değişiklik yapıldığında yeniden "
+         "kontrol edilmesi gerekiyor."),
+        ("İskeleye kendim ekleme yapabilir miyim?",
+         "Yapmayın. Korkuluğun sökülmesi, platformun kaydırılması veya bağlantının çıkarılması "
+         "iskelenin taşıma ve devrilme davranışını değiştiriyor. Bir şeyin yerinden oynaması "
+         "gerekiyorsa bize haber verin, biz düzenleyelim."),
+    ]
+    govde = """
+  <p>İskele, üzerinde insan çalışan geçici bir yapı. Bu yüzden "olsa da olur" denecek hiçbir
+     parçası yok. Aşağıdakiler tercih değil, mevzuatın aradığı asgari şartlar.</p>
+
+  <h2>Hangi mevzuat?</h2>
+  <p>İki temel düzenleme var:</p>
+  <ul class="ok-liste">
+    <li><strong>Yapı İşlerinde İş Sağlığı ve Güvenliği Yönetmeliği</strong> — Resmî Gazete
+        5 Ekim 2013, sayı 28786. Yapı alanındaki çalışma yerlerinin asgari şartlarını,
+        düşmeye karşı korunmayı ve iskelelere ilişkin hükümleri içeriyor.</li>
+    <li><strong>İş Ekipmanlarının Kullanımında Sağlık ve Güvenlik Şartları Yönetmeliği</strong> —
+        Resmî Gazete 25 Nisan 2013, sayı 28628. Yüksekte çalışmada kullanılan ekipmanın
+        seçimi, kurulumu ve kontrolüne ilişkin şartları düzenliyor.</li>
+  </ul>
+  <p>Her ikisinin dayanağı 6331 sayılı İş Sağlığı ve Güvenliği Kanunu.</p>
+
+  <h2>Korkuluk sistemi</h2>
+  <p>Düşme riski olan her çalışma platformunda korkuluk şart. Üç parçası birlikte aranıyor:</p>
+  <ul class="ok-liste">
+    <li><strong>Ana korkuluk</strong> — platform seviyesinden en az 100 cm yükseklikte.</li>
+    <li><strong>Ara korkuluk</strong> — açıklığı bölerek gövdenin geçmesini engelliyor.</li>
+    <li><strong>Topuk levhası (etek tahtası)</strong> — en az 15 cm; aşağıya malzeme düşmesini
+        önlüyor. Altında insan geçiyorsa bu parça hayati.</li>
+  </ul>
+
+  <h2>Çalışma platformu</h2>
+  <p>Platform genişliği çalışanın güvenle durabileceği ölçüde olmalı; mevzuat asgari 60 cm
+     genişlik arıyor. Platformda boşluk bırakılmaması, elemanların kaymaya karşı sabitlenmesi
+     ve üzerinde biriken malzemenin geçişi kapatmaması gerekiyor.</p>
+
+  <h2>Kurulum, söküm ve ehil kişi</h2>
+  <p>İskelenin kurulması, sökülmesi veya önemli ölçüde değiştirilmesi ehil kişi gözetiminde,
+     bu konuda eğitim almış çalışanlar tarafından yapılıyor. Kurulum planı; iskelenin tipi,
+     taşıma sınıfı, bağlantı düzeni ve zemin şartlarına göre belirleniyor.</p>
+
+  <h2>Zemin ve bağlantı</h2>
+  <p>İskele ancak oturduğu zemin kadar sağlam. Taban plakalarının yükü dağıtacak biçimde
+     oturması, yumuşak zeminde altlık kullanılması ve kot farkının ayarlı ayakla düzeltilmesi
+     gerekiyor. Cepheye yapılan bağlantılar ise devrilmeye karşı asıl güvenlik; koruma filesi
+     gerildiğinde rüzgâr yükü arttığı için bağlantı sıklığı da artıyor.</p>
+
+  <h2>Kontrol ve kayıt</h2>
+  <p>Kurulum bittiğinde teslim kontrolü yapılıyor. Kullanım süresince iskelenin durumunun
+     izlenmesi; fırtına, çarpma veya iskelede değişiklik gibi durumlardan sonra yeniden
+     kontrol edilmesi gerekiyor. Uzun süreli şantiyelerde kontrolün kayda geçmesi, kimin ne
+     zaman doğruladığının belli olması açısından önemli.</p>
+
+  <h2>Kullanıcı tarafında üç kural</h2>
+  <ol class="adim">
+    <li><strong>Korkuluğu sökmeyin.</strong> "Malzeme geçmiyor" diye çıkarılan korkuluk en sık
+        rastlanan ihlal.</li>
+    <li><strong>Platformu malzeme deposu yapmayın.</strong> Yük sınırı var ve geçiş kapanıyor.</li>
+    <li><strong>Değişiklik gerekiyorsa arayın.</strong> İskeleyi kuran ekip düzenlesin.</li>
+  </ol>
+"""
+    return govde, sorular
+
+def r_surec():
+    sorular = [
+        ("Keşif ne kadar sürüyor?",
+         "Çoğu apartmanda yarım saatlik bir iş. Cepheyi ölçüyor, zemini ve aracın yanaşacağı "
+         "yeri görüyoruz."),
+        ("Kurulum günü binada olmam gerekiyor mu?",
+         "Şart değil ama birinin ulaşılabilir olması iyi oluyor; özellikle site yönetimi izni, "
+         "otopark kullanımı ve bahçe kapısı gibi konularda."),
+        ("Söküm için ayrıca ücret ödüyor muyum?",
+         "Söküm işçiliği baştan konuşulan kalemlerin içinde yer alıyor; iş bitiminde sürpriz "
+         "bir kalem çıkmıyor."),
+        ("İskele kaldıktan sonra cephede iz kalır mı?",
+         "Cepheye yapılan bağlantı noktaları küçük delikler bırakıyor. Mantolama ve boya "
+         "işlerinde bu noktalar zaten uygulamanın içinde kapanıyor; diğer işlerde nasıl "
+         "kapatılacağını baştan konuşuyoruz."),
+    ]
+    govde = """
+  <p>İskele işi telefonla başlıyor, sökümle bitiyor. Arada altı adım var; hepsini bilirseniz
+     kendi işinizi de buna göre planlarsınız.</p>
+
+  <h2>1. Telefon</h2>
+  <p>Kat sayısı ve cephe eni yeterli. Bu ikisiyle kabaca bir aralık verilebiliyor. Binanın
+     sokağı dar mı, zemin toprak mı, balkon çıkması var mı — bunları da söylerseniz keşif
+     daha hızlı ilerliyor.</p>
+
+  <h2>2. Keşif</h2>
+  <p>Yerinde üç şeye bakılıyor: <strong>cephenin gerçek ölçüsü</strong>,
+     <strong>iskelenin oturacağı zemin</strong> ve <strong>malzemeyi indirecek aracın
+     yanaşacağı yer</strong>. Balkon, çıkma, saçak ve zemin kotu farkı burada ortaya çıkıyor;
+     telefondaki aralık bu aşamada net rakama dönüşüyor.</p>
+
+  <h2>3. Fiyat ve tarih</h2>
+  <p>Metrekare, süre, işçilik ve nakliye netleşince fiyat ve kurulum günü belli oluyor.
+     Site içi işlerde yönetim izni ve çalışma saati kısıtı da bu aşamada konuşuluyor.</p>
+
+  <h2>4. Kurulum</h2>
+  <p>Ekip sabah geliyor. Önce zemin hazırlanıyor: yumuşak zeminde altlık atılıyor, eğimde
+     ayarlı ayakla kot düzeltiliyor, taban plakaları terazisine oturtuluyor. Sonra iskele kat
+     kat yükseliyor; her katta cepheye bağlantılar yapılmadan bir üste çıkılmıyor. Zemin katta
+     yaya geçişi varsa koruyucu tünel kuruluyor.</p>
+  <p>Normal bir apartman cephesinde kurulum çoğunlukla bir gün sürüyor. Yüksek bloklarda,
+     dar sokaklarda ve eğimli arazide bu süre uzayabiliyor.</p>
+
+  <h2>5. Teslim kontrolü</h2>
+  <p>Kurulum bitince korkuluklar, platformlar, topuk levhaları ve cephe bağlantıları tek tek
+     kontrol ediliyor. İskele bu kontrolden sonra teslim ediliyor. Kullanım süresince
+     iskelede değişiklik yapılmaması gerekiyor — korkuluk sökülmüşse veya platform
+     kaydırılmışsa haber verin, biz düzeltelim.</p>
+
+  <h2>6. Söküm</h2>
+  <p>İş bitince haber vermeniz yeterli. Söküm kurulumun tersi sırayla, yukarıdan aşağıya
+     yapılıyor; malzeme toplanıp götürülüyor, alan temizleniyor. Depolama ve bakım yükü
+     sizde kalmıyor — kiralamanın satın almaya göre en görünür avantajı bu.</p>
+"""
+    return govde, sorular
+
+def r_kirala_satin():
+    sorular = [
+        ("Tek seferlik bir iş için satın almak mantıklı mı?",
+         "Genellikle değil. Tek bir cephe boyası için alınan iskele, iş bittikten sonra "
+         "depolanacak, taşınacak ve bakılacak bir yük hâline geliyor."),
+        ("Hangi noktada satın alma anlam kazanıyor?",
+         "Düzenli şantiyesi olan, iskeleyi yıl boyunca farklı işlerde kullanacak firmalarda. "
+         "Orada da depolama alanı, taşıma aracı, bakım ve kurulum ekibi hesaba katılmalı."),
+        ("Kiralamada malzeme bakımı kimde?",
+         "Bizde. Kurulum, söküm, taşıma ve malzemenin bakımı bize ait; siz sadece işin süresi "
+         "kadar ödüyorsunuz."),
+    ]
+    govde = """
+  <p>Soru genelde şöyle geliyor: "Kiralamak yerine alsak daha mı iyi olur?" Cevap işin
+     sıklığına bağlı; rakamlardan önce şu dört yükü hesaba katmak gerekiyor.</p>
+
+  <h2>Satın almanın görünmeyen kalemleri</h2>
+  <ul class="ok-liste">
+    <li><strong>Depolama.</strong> İskele hacimli bir malzeme; iş yokken duracağı kapalı ve
+        kuru bir alan gerekiyor.</li>
+    <li><strong>Taşıma.</strong> Her işte sahaya götürüp getirmek araç ve işçilik demek.</li>
+    <li><strong>Bakım.</strong> Boru, çerçeve ve bağlantı elemanları eğiliyor, paslanıyor,
+        kayboluyor. Hasarlı parçayla kurulan iskele risk üretiyor.</li>
+    <li><strong>Kurulum bilgisi.</strong> Malzemeye sahip olmak, kurmayı bilmek anlamına
+        gelmiyor. Kurulum ve söküm eğitimli ekip işi.</li>
+  </ul>
+
+  <h2>Kiralama ne zaman doğru?</h2>
+  <p>Tek seferlik ya da yılda birkaç kez tekrarlayan işlerde: apartman dış cephe boyası,
+     mantolama, çatı onarımı, tabela ve cephe temizliği. Bu işlerde iskele işin süresi kadar
+     duruyor, sonra gidiyor. Ödediğiniz şey malzeme değil, o sürede güvenle çalışabilmek.</p>
+
+  <h2>Satın alma ne zaman doğru?</h2>
+  <p>Sürekli şantiyesi olan yapı firmalarında. Orada iskele yılın büyük bölümünde kurulu
+     duruyor ve kira toplamı satın alma bedelini geçiyor. Bu durumda bile depolama, taşıma,
+     bakım ve ekip maliyetini hesaba katmak gerekiyor; çoğu firma karma çözüme gidiyor —
+     temel malzeme kendinde, yoğunlukta ek malzeme kiralık.</p>
+
+  <h2>Aradaki üçüncü yol</h2>
+  <p>Uzun süreli şantiyelerde iskele aylarca duruyor ve kira toplamı büyüyor. Böyle işlerde
+     süreyi baştan konuşup uzun dönem şartlarını belirlemek, aylık listeden gitmekten daha
+     mantıklı oluyor. İşin gerçek takvimini bilmek, doğru kararın yarısı.</p>
+"""
+    return govde, sorular
+
+def r_cesitler():
+    sorular = [
+        ("En yaygın iskele türü hangisi?",
+         "Cephe iskelesi. Apartman ve site cephelerinde boya, mantolama ve sıva işlerinin "
+         "büyük bölümü bu sistemle yapılıyor."),
+        ("İç mekân için hangi iskele kullanılıyor?",
+         "Kule (seyyar) iskele. Tekerlekli olduğu için nokta işlerde hızlı; yüksek tavanlı "
+         "depo ve fabrikalarda da kullanılıyor."),
+        ("Yüksek binada cephe iskelesi kurulmuyor mu?",
+         "Kurulabiliyor ama belirli bir yükseklikten sonra hem maliyet hem süre büyüyor. "
+         "Orada sistem iskele ya da çatıdan askıya alınan platform daha mantıklı oluyor."),
+    ]
+    kart = "".join(
+        f'<tr><td><a href="/{t["slug"]}/"><strong>{e(t["ad"])}</strong></a></td>'
+        f'<td>{e(t["kimin"])}</td><td>{e(t["sinir"])}</td></tr>' for t in D.TURLER)
+    govde = f"""
+  <p>İskele denince akla tek bir şey geliyor ama sahada birbirinden ayrı sistemler var.
+     Yanlış tür seçmek hem para hem zaman kaybı; aşağıdaki tablo hangisinin hangi işe
+     oturduğunu yan yana gösteriyor.</p>
+
+  <h2>Karşılaştırma Tablosu</h2>
+  <div class="tablo-sar">
+  <table class="tablo">
+    <thead><tr><th>Sistem</th><th>Hangi işler için</th><th>Sınırı</th></tr></thead>
+    <tbody>{kart}</tbody>
+  </table>
+  </div>
+
+  <h2>Seçerken bakılan dört şey</h2>
+  <ul class="ok-liste">
+    <li><strong>Yükseklik.</strong> Alçak cephede çerçeve iskele yeterli; yükseldikçe sistem
+        iskele ve askılı platform öne çıkıyor.</li>
+    <li><strong>Cephe geometrisi.</strong> Düz cephe çerçeve iskeleye uygun; çıkma, kademe ve
+        düzensiz hatlarda modüler sistem gerekiyor.</li>
+    <li><strong>Süre.</strong> Kısa işlerde kurulum-söküm hızı, uzun işlerde aylık kira
+        belirleyici oluyor.</li>
+    <li><strong>Yük.</strong> Platformda malzeme duracaksa taşıma sınıfı buna göre seçiliyor.</li>
+  </ul>
+  <p>Kendi işinize hangisinin uyduğundan emin değilseniz keşifte birlikte karar veriyoruz;
+     binayı görmeden sistem önermek doğru olmuyor.</p>
+"""
+    return govde, sorular
+
+REHBER_ICERIK = {
+    "iskele-kiralama-fiyatlari": r_fiyat,
+    "iskele-is-guvenligi": r_guvenlik,
+    "iskele-kurulum-sokum-sureci": r_surec,
+    "iskele-kiralama-mi-satin-alma-mi": r_kirala_satin,
+    "iskele-cesitleri": r_cesitler,
+}
+
+def rehber_sayfasi(r):
+    yol = f'/{r["slug"]}/'
+    govde, sorular = REHBER_ICERIK[r["slug"]]()
+    baslik = f"{r['h1']} | {S['marka']}"
+    aciklama = r["ozet"]
+    sema = (isletme_semasi() + sss_semasi(sorular) +
+            ldj({"@context": "https://schema.org", "@type": "Article",
+                 "headline": r["h1"], "description": kirp(r["ozet"]),
+                 "inLanguage": "tr-TR", "url": ALAN + yol,
+                 "publisher": {"@id": ALAN + "/#isletme"},
+                 "mainEntityOfPage": ALAN + yol}))
+    ek = tur_kartlari("İskele Sistemleri") if r["slug"] == "iskele-cesitleri" else ""
+    return head(baslik, aciklama, yol, sema) + ust_header(aktif=yol) + f"""
+{kirinti([("Ana Sayfa", "/"), ("Rehberler", "/#ilceler"), (r["ad"], None)])}
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1([r["h1"]])}
+    <p class="hero-alt">{e(r["ozet"])}</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+  </div>
+</section>
+
+<section class="bol"><div class="kap dar metin">{govde}</div></section>
+
+{sss_bolum(sorular)}
+{ek}
+{cta_band("Kendi cepheniz için ne gerekiyor?",
+          "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
+</main>
+{alt_bilgi()}"""
+
+# ── Yazıcı ──────────────────────────────────────────────────────────────────
+def yaz(yol, ic):
+    if yol == "/":
+        hedef = os.path.join(KOK, "index.html")
+    elif yol.endswith("/"):
+        hedef = os.path.join(KOK, yol.strip("/"), "index.html")
+    else:
+        hedef = os.path.join(KOK, yol.lstrip("/"))
+    os.makedirs(os.path.dirname(hedef), exist_ok=True)
+    with open(hedef, "w", encoding="utf-8") as f:
+        f.write(ic)
+
+def hata404():
+    baslik = "Sayfa bulunamadı | " + S["marka"]
+    aciklama = ("Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir. İskele kiralama "
+                "hizmetimiz için ana sayfaya dönebilir veya doğrudan arayabilirsiniz.")
+    ilk = "".join(f'<li><a href="/{t["slug"]}/">{e(t["ad"])}</a></li>' for t in D.TURLER[:5])
+    return head(baslik, aciklama, "/404.html") + ust_header() + f"""
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1(["Sayfa bulunamadı"])}
+    <p class="hero-alt">Aradığınız sayfa taşınmış olabilir. Aşağıdan devam edebilir ya da
+       doğrudan arayabilirsiniz.</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+  </div>
+</section>
+<section class="bol"><div class="kap dar metin">
+  <h2>Sık kullanılan sayfalar</h2>
+  <ul class="ok-liste">{ilk}
+    <li><a href="/iskele-kiralama-fiyatlari/">İskele kiralama fiyatları</a></li>
+    <li><a href="/#ilceler">İstanbul ilçeleri</a></li>
+  </ul>
+</div></section>
+</main>
+{alt_bilgi()}"""
+
+def sitemap(yollar):
+    g = ['<?xml version="1.0" encoding="UTF-8"?>',
+         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for y, oncelik in yollar:
+        g.append(f"  <url><loc>{ALAN}{y}</loc><priority>{oncelik}</priority></url>")
+    g.append("</urlset>")
+    return "\n".join(g) + "\n"
+
+def main():
+    yollar = []
+    yaz("/", anasayfa());                    yollar.append(("/", "1.0"))
+    for i in D.ILCELER:
+        yaz(ilce_yolu(i), ilce_sayfasi(i));  yollar.append((ilce_yolu(i), "0.8"))
+    for t in D.TURLER:
+        yaz(f'/{t["slug"]}/', tur_sayfasi(t)); yollar.append((f'/{t["slug"]}/', "0.9"))
+    for r in D.REHBERLER:
+        yaz(f'/{r["slug"]}/', rehber_sayfasi(r)); yollar.append((f'/{r["slug"]}/', "0.7"))
+    yaz("/404.html", hata404())
+
+    with open(os.path.join(KOK, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write(sitemap(yollar))
+    with open(os.path.join(KOK, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % ALAN)
+    with open(os.path.join(KOK, "CNAME"), "w", encoding="utf-8") as f:
+        f.write(ALAN.split("//")[1] + "\n")
+
+    print(f"{len(yollar)} sayfa yazıldı  (1 ana + {len(D.ILCELER)} ilçe + "
+          f"{len(D.TURLER)} tür + {len(D.REHBERLER)} rehber)")
+    if not D.FIYATLAR:
+        print("⏳ UYARI: data.FIYATLAR boş — fiyat tablosu basılmadı.")
+    if len(D.ONAYLI_IDDIALAR) < 2:
+        print("⏳ UYARI: ONAYLI_IDDIALAR listesi zayıf — tecrübe/sigorta/belge teyidi bekleniyor.")
+
+if __name__ == "__main__":
+    main()
