@@ -981,3 +981,59 @@ body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
 
 .bol-gri .kart-ic,.bol-gri .donem,.bol-gri .sss-o,.bol-gri .hesap-kutu{background:#fff}
 .bol-ak .hesap-kutu{background:var(--ak-2)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBİL HEADER — ölçümle bulunan denge sorunu (2026-09-01)
+   390px'te logo 67×46, "Teklif Al" 116×49 idi: düğme logodan büyük olduğu için
+   hiyerarşi tersti ve aralarında 123px boşluk kalıyordu. Logo 1.45:1 oranında
+   olduğundan 46px yükseklikte marka adı okunmuyordu.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:860px){
+  :root{--ust-h:78px}
+  .ust-ic{gap:8px}
+  /* Logo büyüdü: 46 → 58px (genişlik ~84px), marka adı artık okunuyor */
+  .logo-im{height:58px}
+  /* Teklif Al kompaktlaştı: düğme artık logodan baskın değil */
+  .ust .dg-teklif{padding:10px 16px; font-size:.86rem; border-radius:11px; gap:6px}
+  .ust .dg-teklif svg{width:12px; height:12px}
+  .hamburger{width:44px; height:44px; border-radius:12px}
+  /* Sağ grup birlikte hareket etsin, ortadaki boşluk logoya nefes versin */
+  .ust-ara{gap:8px}
+}
+@media (max-width:400px){
+  :root{--ust-h:72px}
+  .logo-im{height:52px}
+  .ust .dg-teklif{padding:9px 13px; font-size:.82rem}
+  .hamburger{width:42px; height:42px}
+}
+@media (max-width:340px){
+  .logo-im{height:46px}
+  /* Çok dar ekranda düğme yalnız ikon — metin taşmasın */
+  .ust .dg-teklif span{display:none}
+  .ust .dg-teklif{padding:11px}
+  .ust .dg-teklif svg{width:15px; height:15px}
+}
+
+/* Mobil menü paneli: kurumsal görünüm, üst bara yapışık, ayrı kart gibi değil */
+@media (max-width:860px){
+  .menu{background:#fff; border-bottom:1px solid #e6e9ee; padding:8px 16px 14px;
+    box-shadow:0 18px 40px rgba(16,20,26,.16)}
+  .menu a{color:var(--celik); padding:14px 12px; border-radius:10px; font-size:1rem;
+    border-bottom:1px solid #f0f2f5}
+  .menu a:last-child{border-bottom:0}
+  .menu a::after{display:none}
+  .menu a:hover,.menu a:focus-visible{background:rgba(250,100,0,.07); color:var(--tur-koyu)}
+  .menu a.aktif{background:rgba(250,100,0,.1); color:var(--tur-koyu)}
+}
+
+/* ⚠️ Mobil menüde "siyah üzerine siyah" (kullanıcı bildirdi):
+   `.menu a{color:var(--celik)}` masaüstü için media query DIŞINDA yazılmıştı;
+   mobilde panel koyu (`var(--koyu)`) olduğu için koyu gri yazı okunmuyordu.
+   Panel beyaza çevrildi. Aktif link kontrastı da 4.32:1 ile sınırın altındaydı
+   (WCAG AA = 4.5) → daha koyu turuncuya alındı: 6.1:1. */
+@media (max-width:860px){
+  .menu{background:#fff !important}
+  .menu a{color:#3a4353 !important}
+  .menu a.aktif{color:#a33d00 !important; background:rgba(250,100,0,.09)}
+  .menu a:hover,.menu a:focus-visible{color:#a33d00 !important}
+}
