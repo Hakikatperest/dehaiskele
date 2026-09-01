@@ -58,6 +58,8 @@ ONAYLI_IDDIALAR = [
     "10 yılı aşkın sektör deneyimi",       # firma tanıtım PDF'i, "Hakkımızda"
     "günlük / haftalık / aylık kiralama",  # firma tanıtım PDF'i, "Esnek Kiralama Dönemleri"
     "kurulum ve söküm dahil",              # firma tanıtım PDF'i, "Eksiksiz Hizmet Paketi"
+    "aynı gün teslim",                     # 2026-09-01, kullanıcının kendi yazdığı metin
+    "ihtiyaç duyulan süre boyunca kiralama",
 ]
 # ⏳ HÂLÂ teyit bekleyen (sayfaya GİRMEZ): TSE/CE belgesi · İSG sertifikası ·
 #    depozito şartları · indirimli paket · SAATLİK kiralama (PDF'te de yok)

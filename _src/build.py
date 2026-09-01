@@ -791,6 +791,90 @@ def bolunmus_bolum():
   </div>
 </section>"""
 
+
+# ── Anasayfa SEO içeriği ────────────────────────────────────────────────────
+# Kullanıcı 2026-09-01: anasayfa şu başlıklarla zenginleşsin — "İstanbul'da iskele
+# nerede kiralanır?", "İskele kiralama şartları", "İskele teslim süreci",
+# "İstanbul kurumsal iskele kiralama firması: Deha İskele".
+# ⚠️ "Aynı gün teslim" iddiası kullanıcının kendi yazdığı metinden geliyor (teyitli).
+# ⛔ Depozito/sözleşme şartları YAZILMADI — teyit edilmedi.
+def seo_icerik():
+    ilce_ln = " · ".join(
+        f'<a href="{ilce_yolu(i)}">{e(i["ad"])}</a>'
+        for i in D.ILCELER if i["slug"] in
+        ("esenyurt", "bagcilar", "kadikoy", "umraniye", "basaksehir", "maltepe", "fatih", "sisli"))
+    return f"""<section class="bol metin-bol"><div class="kap dar metin">
+
+  <h2>İstanbul'da İskele Nerede Kiralanır?</h2>
+  <p>En kısa cevabı vereyim: bizden :) Deha İskele olarak depomuz
+     <strong>{e(S['adres_ilce'])}</strong>'da ve İstanbul'un <a href="/ilceler/">39 ilçesinin
+     tamamına</a> kurulum yapıyoruz. Ekip Avrupa ve Anadolu yakasına aynı noktadan çıkıyor;
+     yani hangi ilçede olursanız olun aynı ekiple çalışıyorsunuz.</p>
+  <p>İskele kiralarken bakmanız gereken üç şeyi söyleyeyim. Birincisi: firma kurulumu ve
+     sökümü kendisi yapıyor mu, yoksa malzemeyi kapınıza bırakıp gidiyor mu? İkincisi:
+     ölçü almadan telefonda kesin fiyat veriyor mu? Veriyorsa o rakam keşiften sonra
+     değişir.. Üçüncüsü ve en önemlisi: korkuluk, topuk levhası ve cephe bağlantısı
+     konusunda ne diyor? Bunları "gerekirse takarız" diyen biriyle çalışmayın.</p>
+  <p>Sık çalıştığımız ilçelerden birkaçı: {ilce_ln} — ilçenize ait sayfada o bölgede
+     karşılaştığımız zemin, sokak ve yapı stoğu notlarını da yazdık.</p>
+
+  <h2>İskele Kiralama Şartları</h2>
+  <p>Şartlarımızı olabildiğince sade tuttuk, sürpriz sevmiyoruz:</p>
+  <ul class="ok-liste">
+    <li><strong>Keşif ücretsiz.</strong> Gelip cepheyi ölçüyoruz, zemini ve aracın
+        yanaşacağı yeri görüyoruz. Bu olmadan kesin fiyat çıkmıyor.</li>
+    <li><strong>Süre size bağlı.</strong> Günlük, haftalık ve aylık kiralama var;
+        ihtiyaç duyduğunuz süre boyunca iskele sizde kalıyor. Süre uzarsa yeni bir
+        kurulum ücreti çıkmıyor.</li>
+    <li><strong>Kurulum ve söküm bize ait.</strong> Malzemeyi bırakıp gitmiyoruz;
+        iş bitince toplayıp götürüyoruz. Depolama, taşıma ve bakım sizin derdiniz olmuyor.</li>
+    <li><strong>Süreç sigorta güvencesinde.</strong> Kiralama boyunca kapsamlı sigorta
+        kapsamıyla çalışıyoruz.</li>
+    <li><strong>İskelede değişiklik yapılmaz.</strong> Korkuluğun sökülmesi ya da
+        platformun kaydırılması iskelenin taşıma ve devrilme davranışını değiştiriyor.
+        Bir şeyin yerinden oynaması gerekiyorsa bizi arayın, gelip biz düzenleyelim.</li>
+    <li><strong>Ölçü değişirse fiyat da değişir.</strong> Keşifte konuşulan cepheye ek
+        bir yüzey çıkarsa bunu baştan söylüyoruz — iş ortasında sürpriz kalem çıkmıyor.</li>
+  </ul>
+  <p>Mevzuatın aradığı asgari şartları (korkuluk yüksekliği, topuk levhası, platform
+     genişliği) <a href="/iskele-is-guvenligi/">iş güvenliği sayfasında</a> Resmî Gazete
+     referanslarıyla yazdım; merak ederseniz kaynağından okuyabilirsiniz.</p>
+
+  <h2>İskele Teslim Süreci</h2>
+  <p>Süreç bir telefonla başlıyor, sökümle bitiyor. Arada altı adım var:</p>
+  <ol class="adim">
+    <li><strong>Arayın, kabaca anlatın.</strong> Kat sayısı ve cephe eni yeterli;
+        telefonda size bir aralık verebiliyorum.</li>
+    <li><strong>Ücretsiz keşif.</strong> Cepheyi ölçüyor, zemini ve aracın yanaşacağı
+        yeri görüyoruz. Balkon, çıkma, saçak ve kot farkı hep burada ortaya çıkıyor.</li>
+    <li><strong>Net fiyat ve tarih.</strong> Metrekare, süre ve işçilik netleşince
+        rakamı ve teslim gününü söylüyoruz.</li>
+    <li><strong>Teslimat ve kurulum.</strong> Malzeme sahaya geliyor, zemin hazırlanıyor,
+        iskele kat kat yükseliyor. Cepheye bağlantılar yapılmadan üst kata çıkılmıyor.
+        Normal bir apartman cephesinde iş çoğunlukla bir günde bitiyor.</li>
+    <li><strong>Teslim kontrolü.</strong> Korkuluk, platform, topuk levhası ve bağlantılar
+        tek tek gözden geçiriliyor. İskele ondan sonra sizin.</li>
+    <li><strong>Söküm.</strong> İş bitince bir telefon yeterli; sökümü biz yapıyor,
+        alanı temiz bırakıyoruz.</li>
+  </ol>
+  <p>Sürecin tamamını adım adım <a href="/iskele-kurulum-sokum-sureci/">kurulum ve söküm
+     rehberinde</a> anlattım.</p>
+
+  <h2>İstanbul Kurumsal İskele Kiralama Firması: Deha İskele</h2>
+  <p><strong>Çeşitli iskele türleriyle aynı gün içinde teslim hizmeti sunuyoruz.</strong>
+     İhtiyaç duyduğunuz süre boyunca iskele kiralayabilirsiniz. Kurulum ve söküm
+     aşamalarında ise her an yanınızdayız!</p>
+  <p>10 yılı aşkın süredir bu işin içindeyiz. Bu sürede apartman cephesinden fabrika
+     bakımına, tarihi yapı restorasyonundan etkinlik sahnesine kadar çok farklı iş gördük.
+     <a href="/iskele-cesitleri/">18 farklı iskele sistemi</a> kiralıyoruz — cepheden
+     kalıp altına, mobilden asma iskeleye kadar. Hangisinin sizin işinize oturduğundan
+     emin değilseniz hiç uğraşmayın, arayın; keşifte binayı görüp birlikte karar veriyoruz.</p>
+  <p>Her gün <strong>{e(S['saat'])}</strong> arası açığız, Pazar dahil; acil durumlarda
+     saat fark etmeksizin ulaşabilirsiniz. Firmamızı daha yakından tanımak isterseniz
+     <a href="/hakkimizda/">hakkımızda sayfamıza</a> bakabilir ya da doğrudan
+     <a href="tel:{S['tel_link']}">{e(S['tel'])}</a> numarasından arayabilirsiniz.</p>
+</div></section>"""
+
 # ── İlçe sayfası ────────────────────────────────────────────────────────────
 def ilce_yolu(i):
     return f'/{i["slug"]}-iskele-kiralama/'
@@ -1229,26 +1313,7 @@ def anasayfa():
 {kiralama_donemleri()}
 {hesaplayici()}
 
-<section class="bol surec"><div class="kap dar metin">
-  <h2>Keşiften Söküme, İşin Tamamı</h2>
-  <p>Merak edenler için süreci baştan sona yazayım — sürpriz olsun istemiyorum :)</p>
-  <ol class="adim">
-    <li><strong>Arayın, kabaca anlatın.</strong> Kat sayısı ve cephe eni yeterli. Bu ikisiyle
-        telefonda size bir aralık verebiliyorum.</li>
-    <li><strong>Keşfe geliyoruz.</strong> Cepheyi ölçüyor, zemini ve aracın yanaşacağı yeri
-        görüyoruz. Balkon, çıkma ve kot farkı hep burada ortaya çıkıyor.. Ölçü almadan kesin
-        rakam vermemin sebebi de bu.</li>
-    <li><strong>Net fiyat ve tarih.</strong> Metrekare, süre ve işçilik netleşince rakamı ve
-        kurulum gününü söylüyoruz. Sonradan kalem eklenmiyor.</li>
-    <li><strong>Kurulum.</strong> Zemin hazırlanıyor, taban plakaları terazisine oturuyor,
-        iskele kat kat yükseliyor. Cepheye bağlantılar yapılmadan bir üst kata çıkılmıyor —
-        burada acele etmiyoruz.</li>
-    <li><strong>Teslim kontrolü.</strong> Korkuluk, platform, topuk levhası ve bağlantılar
-        tek tek gözden geçiriliyor. İskele ondan sonra sizin.</li>
-    <li><strong>Söküm.</strong> İş bitince bir telefon yeterli. Sökümü biz yapıyoruz,
-        malzeme sizde kalmıyor, ortalık temiz kalıyor.</li>
-  </ol>
-</div></section>
+{seo_icerik()}
 
 {tanitim_bolum()}
 {sss_bolum(ANA_SSS)}
