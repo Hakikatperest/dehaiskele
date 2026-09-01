@@ -1037,3 +1037,16 @@ body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
   .menu a.aktif{color:#a33d00 !important; background:rgba(250,100,0,.09)}
   .menu a:hover,.menu a:focus-visible{color:#a33d00 !important}
 }
+
+/* ⚠️ HEADER ÜSTÜNDE BEYAZ ŞERİT (kullanıcı bildirdi, ölçümle doğrulandı):
+   Kapalı mobil menü `transform:translateY(-118%)` ile gizleniyordu. Panel
+   top:72px'ten başlayıp 369px yüksekliğinde olduğu için -118% (-435px) kaydırma
+   alt kenarını +6px'te bırakıyordu → header'ın ÜSTÜNDE 6px beyaz şerit.
+   Yüzde bazlı kaydırma güvenilmez: panel yüksekliği içerik ve ekrana göre değişiyor.
+   Çözüm: visibility ile kesin gizleme (taşma olsa da görünmez) + tam kapatan kaydırma. */
+@media (max-width:860px){
+  .menu{transform:translateY(-104%); visibility:hidden;
+    transition:transform .3s cubic-bezier(.3,.8,.3,1), visibility .3s;
+    top:var(--ust-h); bottom:auto}
+  .menu.acik{transform:translateY(0); visibility:visible}
+}
