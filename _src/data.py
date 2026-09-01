@@ -74,6 +74,13 @@ SOSYAL = [
     ("Instagram", "https://www.instagram.com/deha_iskele/", "instagram"),
 ]
 
+# ── Web4Medya tıklama takibi (kullanıcı 2026-09-01'de verdi) ────────────────
+# ⚠️ Bu, sitenin "üçüncü parti istek sıfır" kararını bozan İLK istek. async ve
+#    küçük olduğu için ilk açılış ağırlığına etkisi sınırlı, ama artık "sıfır"
+#    diyemeyiz. (seyrannakliyat'ta da aynı karar aynı gerekçeyle verildi.)
+TAKIP_KEY = "w4-q1jllqbbrrmwolka"
+TAKIP_SRC = "https://www.web4medya.com/w4t.js"
+
 # ── Tanıtım videosu (kullanıcı 2026-09-01'de yükledi) ───────────────────────
 # ⚠️ 5,06 MB — ilk yükte İNMEZ: preload="none" + poster görseli. Video ancak
 #    ziyaretçi oynat'a basınca iniyor. (seyrannakliyat'ta da video/harita aynı

@@ -211,6 +211,7 @@ def head(baslik, aciklama, yol, schema=""):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script async src="{D.TAKIP_SRC}" data-key="{D.TAKIP_KEY}"></script>
 <title>{e(baslik)}</title>
 <meta name="description" content="{e(ac)}">
 <link rel="canonical" href="{e(kanonik)}">
