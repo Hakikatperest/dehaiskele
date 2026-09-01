@@ -139,9 +139,13 @@
    passive dinleyici + rAF: kaydırma performansına dokunmuyor. */
 (function () {
   "use strict";
-  var esik = 40, bekle = false;
+  /* ⚠️ Histerezis: tek eşik kullanılırsa sınır civarında sınıf açılıp kapanıyor.
+     Açılış 90px, kapanış 40px — arada 50px'lik ölü bant var. */
+  var ac = 90, kapa = 40, bekle = false, durum = false;
   function bak() {
-    document.body.classList.toggle("kaydi", window.scrollY > esik);
+    var y = window.scrollY;
+    if (!durum && y > ac) { durum = true; document.body.classList.add("kaydi"); }
+    else if (durum && y < kapa) { durum = false; document.body.classList.remove("kaydi"); }
     bekle = false;
   }
   window.addEventListener("scroll", function () {

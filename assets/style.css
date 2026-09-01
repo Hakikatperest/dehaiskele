@@ -1082,3 +1082,22 @@ body.kaydi .logo-im{height:clamp(52px,5.4vw,62px)}
 @media (max-width:340px){
   .logo-im{height:52px}
 }
+
+/* ⚠️ HEADER TİTREŞİMİ (kullanıcı bildirdi, ölçümle kanıtlandı):
+   `body.kaydi` header yüksekliğini 143→125px değiştiriyordu. Sticky başlık normal
+   akışta yer kapladığı için bu 18px'lik değişim sayfayı kaydırıyor, scroll konumu
+   sıçrıyor (ölçüm: hedef 39px → gerçekleşen 57px), eşik yeniden aşılıyor ve sınıf
+   açılıp kapanarak TİTREŞİM üretiyordu.
+   ⛔ Sticky başlıkta yükseklik/padding/margin ANİMASYONU YAPMA — layout tetikler.
+   Kompakt görünüm yerine yalnız gölge ve logo ölçeği değişiyor: ikisi de
+   layout'a dokunmuyor (box-shadow + transform, GPU'da). */
+body.kaydi .ust{--ust-h:100px}                    /* yükseklik SABİT */
+body.kaydi .logo-im{height:clamp(58px,6.6vw,76px)}
+.ust,.logo-im{transition:none}                     /* height geçişi kaldırıldı */
+.logo-im{transform-origin:left center;
+  transition:transform .25s cubic-bezier(.2,.7,.3,1)}
+body.kaydi .logo-im{transform:scale(.86)}          /* layout'suz küçülme */
+body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
+@media (max-width:1120px){body.kaydi .ust{--ust-h:92px} body.kaydi .logo-im{height:66px}}
+@media (max-width:860px){body.kaydi .ust{--ust-h:86px} body.kaydi .logo-im{height:66px}}
+@media (max-width:400px){body.kaydi .ust{--ust-h:78px} body.kaydi .logo-im{height:58px}}
