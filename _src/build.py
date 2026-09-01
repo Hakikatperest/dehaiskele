@@ -145,6 +145,12 @@ def tel_btn(sinif="dg dg-sari", metin=None):
     return (f'<a class="{sinif}" href="tel:{S["tel_link"]}" '
             f'data-ara="1">{svg_tel()}<span>{e(metin or S["tel"])}</span></a>')
 
+def tel2_btn(sinif="dg dg-hat2", metin=None):
+    """İkinci hat. ⚠️ Birinci numara her yerde birincil kalıyor; bu düğme onun
+    yanında ikincil görünümde duruyor ki hangisinin ana hat olduğu belirsizleşmesin."""
+    return (f'<a class="{sinif}" href="tel:{S["tel2_link"]}" '
+            f'data-ara="2">{svg_tel()}<span>{e(metin or S["tel2"])}</span></a>')
+
 def wa_btn(mesaj="Merhaba, iskele kiralama için bilgi almak istiyorum.", sinif="dg dg-wa"):
     from urllib.parse import quote
     return (f'<a class="{sinif}" href="https://wa.me/{S["wa"]}?text={quote(mesaj)}" '
@@ -268,7 +274,8 @@ def alt_bilgi():
       <div class="alt-sut"><h3>Rehberler</h3><ul>{reh_ln}</ul></div>
       <div class="alt-sut alt-iletisim"><h3>İletişim</h3>
         <p class="adres">{e(S['adres'])}</p>
-        <p><a href="tel:{S['tel_link']}">{e(S['tel'])}</a></p>
+        <p><a href="tel:{S['tel_link']}">{e(S['tel'])}</a><br>
+           <a href="tel:{S['tel2_link']}">{e(S['tel2'])}</a></p>
         <p><a href="https://www.google.com/maps/search/?api=1&amp;query={e(S['adres'].replace(' ', '+'))}"
            target="_blank" rel="noopener">Yol tarifi al</a></p>
       </div>
@@ -282,13 +289,37 @@ def alt_bilgi():
   </div>
 </footer>
 <div class="sabit-ara">
-  <a href="tel:{S['tel_link']}">{svg_tel()}<span>Hemen Ara</span></a>
+  <a href="tel:{S['tel_link']}">{svg_tel()}<span>Ara</span></a>
+  <a class="sa-2" href="tel:{S['tel2_link']}">{svg_tel()}<span>2. Hat</span></a>
   <a href="https://wa.me/{S['wa']}" target="_blank" rel="noopener">{svg_wa()}<span>WhatsApp</span></a>
 </div>
 <script src="{surum('/assets/app.js')}" defer></script>
 </body>
 </html>
 """
+
+
+# ── Görsel vitrini ──────────────────────────────────────────────────────────
+# Kullanıcı 2026-09-01: "tam boy olarak yay, tıklanınca aranabilir olsun".
+# ⚠️ KIRPMA YOK — object-fit:cover kullanılmıyor, görsel kendi oranında basılıyor
+#    (kaynaklar 1:1 ile 1.87:1 arasında değişiyor; kırpmak kompozisyonu bozuyor).
+# ⚠️ Görselin TAMAMI tel: bağlantısı.
+def vitrin(taban, oncelik=False, yazi=None, sinif=""):
+    if not taban or not gorsel_var(taban):
+        return ""
+    alt = D.GORSEL_ALT.get(taban, S["marka"] + " iskele kiralama")
+    g = gorsel(taban, alt, boy="(min-width:1000px) 980px, 100vw", oncelik=oncelik)
+    if not g:
+        return ""
+    etiket = yazi or "Hemen ara: " + S["tel"]
+    return (f'<a class="vitrin {sinif}" href="tel:{S["tel_link"]}" '
+            f'aria-label="{e(alt)} — {e(etiket)}">{g}'
+            f'<span class="vitrin-ara">{svg_tel()}<span>{e(etiket)}</span></span></a>')
+
+def ilce_gorseli(i, sira=0):
+    """İlçe sayfalarında havuzdan dönüşümlü görsel — her ilçe farklı görselle açılıyor."""
+    h = D.GENEL_HAVUZ
+    return h[(D.ILCELER.index(i) + sira) % len(h)]
 
 # ── JSON-LD ─────────────────────────────────────────────────────────────────
 def ldj(nesne):
@@ -304,7 +335,7 @@ def isletme_semasi(alan_adi=None):
         "@id": ALAN + "/#isletme",
         "name": S["marka"],
         "url": ALAN + "/",
-        "telephone": S["tel_link"],
+        "telephone": [S["tel_link"], S["tel2_link"]],
         "description": S["aciklama"],
         "address": {
             "@type": "PostalAddress",
@@ -358,7 +389,7 @@ def sss_bolum(sorular, baslik="Sık Sorulan Sorular"):
 def cta_band(baslik, metin):
     return f"""<section class="cta"><div class="kap dar">
   <h2>{e(baslik)}</h2><p>{e(metin)}</p>
-  <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+  <div class="dg-grup">{tel_btn()}{tel2_btn()}{wa_btn()}</div>
 </div></section>"""
 
 def hesaplayici():
@@ -694,6 +725,8 @@ def ilce_sayfasi(i):
 
 {guven_seridi()}
 
+<section class="bol"><div class="kap">{vitrin(ilce_gorseli(i), oncelik=True)}</div></section>
+
 <section class="bol"><div class="kap dar metin">{h2_bloklari}
 {h3_blok}
 {tur_bolumu}
@@ -743,24 +776,31 @@ def ilce_tur_bolumu(i):
     Her bölümün sonunda BAŞKA bir ilçeye 'ilçe + tür' anchor'lı çapraz link var —
     örümcek ağı bu şekilde kuruluyor, ayrı sayfa açmadan."""
     metin = " ".join([i["doku"], i["vurgu"]]).lower()
+    # ⚠️ Tam tanıtım + görsel alan tür sayısı 4 ile SINIRLI. Kural serbest bırakılınca
+    #    ilçe başına ~14 vitrin çıkıyordu (sayfa 1,5 MB görsel); "dar sokak" gibi
+    #    yaygın ifadeler her ilçede birden çok kategoriyi tetikliyor.
+    puan = collections.Counter()
+    KURAL = [
+        (("yüksek", "rezidans", "plaza", "blok", "on iki"),
+         ("sistem-iskele", "asma-iskele", "flansli-iskele", "merdivenli-iskele")),
+        (("mantolama", "yalıtım", "güçlendirme", "dönüşüm"),
+         ("mantolama-iskelesi", "cephe-iskelesi", "h-tipi-iskele")),
+        (("depo", "fabrika", "imalathane", "sanayi", "tersane", "liman"),
+         ("endustriyel-iskele", "mobil-iskele", "kalip-alti-iskelesi", "cuplock-iskele")),
+        (("tarihi", "bitişik", "restorasyon", "koruma"),
+         ("konsol-iskele", "mobil-iskele", "asma-iskele")),
+        (("villa", "müstakil", "eğim", "yamaç", "bahçe"),
+         ("h-tipi-iskele", "kamali-iskele", "boya-badana-iskelesi")),
+    ]
+    for kelimeler, sluglar in KURAL:
+        if any(x in metin for x in kelimeler):
+            for n, s in enumerate(sluglar):
+                puan[s] += 10 - n
+    for s in ("cephe-iskelesi", "h-tipi-iskele"):
+        puan[s] += 5                      # her ilçede taban
+    secilen = {s for s, _ in puan.most_common(4)}
     def uygun(t):
-        s = t["slug"]
-        if any(x in metin for x in ("yüksek", "rezidans", "plaza", "blok", "on iki")):
-            if s in ("sistem-iskele", "asma-iskele", "flansli-iskele", "merdivenli-iskele"):
-                return True
-        if any(x in metin for x in ("mantolama", "yalıtım", "güçlendirme", "dönüşüm")):
-            if s in ("mantolama-iskelesi", "cephe-iskelesi", "h-tipi-iskele"):
-                return True
-        if any(x in metin for x in ("depo", "fabrika", "imalathane", "sanayi", "tersane", "liman")):
-            if s in ("endustriyel-iskele", "mobil-iskele", "kalip-alti-iskelesi", "cuplock-iskele"):
-                return True
-        if any(x in metin for x in ("tarihi", "dar", "bitişik", "restorasyon", "koruma")):
-            if s in ("konsol-iskele", "mobil-iskele", "asma-iskele"):
-                return True
-        if any(x in metin for x in ("villa", "müstakil", "eğim", "yamaç", "bahçe")):
-            if s in ("h-tipi-iskele", "kamali-iskele", "boya-badana-iskelesi"):
-                return True
-        return s in ("cephe-iskelesi", "h-tipi-iskele")
+        return t["slug"] in secilen
 
     # çapraz link için komşular + graf uzağındaki ilçeler karıştırılıyor
     komsular = [ILCE[k] for k in KOMSU.get(i["slug"], []) if k in ILCE]
@@ -773,8 +813,14 @@ def ilce_tur_bolumu(i):
                 f'arayın — keşifte binayı görüp birlikte karar veriyoruz :)</p>']
 
     for n, t in enumerate(D.TURLER):
+        tam = uygun(t)
         parcalar.append(f'  <h3>{e(ek(i))} {e(kucuk(t["ad"]))} kiralama</h3>')
-        parcalar.append("  " + tur_tanitim(t, i, uygun(t)))
+        # ⚠️ Görsel yalnız tam tanıtım alan türlerde: 18 görsel sayfayı boğuyor,
+        #    lazy yüklense bile düzen ve kaydırma ağırlaşıyor.
+        if tam:
+            parcalar.append("  " + vitrin(D.TUR_GORSEL.get(t["slug"]),
+                                          yazi=f"{ek(i)} {kucuk(t['ad'])} için ara: {S['tel']}"))
+        parcalar.append("  " + tur_tanitim(t, i, tam))
         # çapraz link: başka bir ilçe + başka bir tür — anchor'da ikisi birlikte
         hedef = (komsular[n % len(komsular)] if komsular and n % 2 == 0
                  else hepsi[(baslangic + n * 7) % len(hepsi)])
@@ -838,6 +884,8 @@ def tur_sayfasi(t):
 </section>
 
 {guven_seridi()}
+
+<section class="bol"><div class="kap">{vitrin(D.TUR_GORSEL.get(t["slug"]), oncelik=True)}</div></section>
 
 <section class="bol"><div class="kap dar metin">
   <h2>Kimler İçin?</h2>
@@ -918,9 +966,10 @@ def anasayfa():
     <p class="hero-alt">Cephenizi gelip ölçüyoruz, metrekare üzerinden net konuşuyoruz.
        Kurulum da söküm de bize ait — siz sadece işinizi yapıyorsunuz. İstanbul'un iki
        yakasında da aynı ekip çalışıyor.</p>
-    <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+    <div class="dg-grup">{tel_btn()}{tel2_btn()}{wa_btn()}</div>
     <p class="hero-not">Merkez: {e(S['merkez_ilce'])} · Avrupa ve Anadolu yakasının tamamı</p>
   </div>
+  <div class="kap hero-gorsel">{vitrin(D.HERO_GORSEL, oncelik=True)}</div>
 </section>
 
 {guven_seridi()}
@@ -1282,6 +1331,8 @@ def rehber_sayfasi(r):
     <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
   </div>
 </section>
+
+<section class="bol"><div class="kap">{vitrin(D.GENEL_HAVUZ[D.REHBERLER.index(r) % len(D.GENEL_HAVUZ)], oncelik=True)}</div></section>
 
 <section class="bol"><div class="kap dar metin">{govde}</div></section>
 

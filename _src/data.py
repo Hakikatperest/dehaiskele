@@ -28,6 +28,9 @@ SITE = {
     "tel": "0530 352 61 53",
     "tel_link": "+905303526153",
     "wa": "905303526153",
+    # İkinci hat (kullanıcı 2026-09-01'de verdi). Birincisi meşgulse aranacak numara.
+    "tel2": "0532 346 40 11",
+    "tel2_link": "+905323464011",
     "sehir": "İstanbul",
     "merkez_ilce": "Eyüpsultan",          # depo/merkez — mesafe cümleleri buradan türer
     "merkez_slug": "eyupsultan",
@@ -949,3 +952,69 @@ TURLER += [
          ],
          sinir="Konut cephesi için gereğinden ağır ve pahalı bir çözümdür."),
 ]
+
+
+# ── Görseller (kullanıcı 2026-09-01'de yükledi) ──────────────────────────────
+# ⚠️ Sayfalara HEP türev giriyor (images/w500|w900|w1600). Kaynaklar images/ kökünde
+#    duruyor, silinmez. Türev üretimi: python3 _src/media.py
+# ⚠️ Görseller KIRPILMIYOR (object-fit:cover yok) — kullanıcı "tam boy" istedi ve
+#    poster tarzı görsellerde kırpma üstteki/alttaki yazıyı kesiyor.
+# ⚠️ Görselin tamamı tel: bağlantısı — kullanıcı "tıklanınca aranabilir olsun" dedi.
+HERO_GORSEL = "deha-iskele-hero"
+
+# Tür sayfası → kendi görseli
+TUR_GORSEL = {
+    "cephe-iskelesi":        "istanbul-dis-cephe-iskelesi-kira",
+    "h-tipi-iskele":         "istanbul-h-tipi-kiralik-iskele",
+    "flansli-iskele":        "istanbul-flanshli-iskele-kiralam",
+    "kule-iskele":           "istnbul-seyyat-iskele-kiralama",
+    "mobil-iskele":          "istanbul-mobil-iskele-kiralama",
+    "merdivenli-iskele":     "istanbul-merdivenli-kiralik-iske",
+    "konsol-iskele":         "kiralik-konsol-iskele",
+    "cati-iskelesi":         "cati-iskelesi-ve-kenar-koruma",
+    "sahne-podyum-iskelesi": "istanbul-sahne-ve-etkinlik-iskel",
+    "asma-iskele":           "istanbul-cati-iskelesi-kiralama",
+    "endustriyel-iskele":    "istanbul-kiralik-insaat-iskelesi",
+    "sistem-iskele":         "istanbul-kiralik-iskele-firmasi",
+    "kamali-iskele":         "istanbul-yeni-kiralik-iskele",
+    "cuplock-iskele":        "istanbul-kiralik-insaat-iskele",
+    "masa-iskele":           "istanbul-kaliteli-kiralik-iskele",
+    "kalip-alti-iskelesi":   "istanbul-iskele-firmasi",
+    "mantolama-iskelesi":    "istanbul-dis-cephe-iskelesi-kira",
+    "boya-badana-iskelesi":  "istanbul-kaliteli-kiralik-iskele",
+}
+
+# İlçe ve rehber sayfalarında dönüşümlü kullanılan havuz
+GENEL_HAVUZ = [
+    "istanbul-iskele-firmasi",
+    "istanbul-kaliteli-kiralik-iskele",
+    "istanbul-kiralik-insaat-iskele",
+    "istanbul-kiralik-insaat-iskelesi",
+    "istanbul-kiralik-iskele-firmasi",
+    "istanbul-yeni-kiralik-iskele",
+    "istanbul-dis-cephe-iskelesi-kira",
+    "istanbul-h-tipi-kiralik-iskele",
+    "istanbul-mobil-iskele-kiralama",
+    "istanbul-kiralik-insaat-iskele",
+]
+
+# Alt metinleri: dosya adına değil, görselin ne gösterdiğine göre yazıldı.
+GORSEL_ALT = {
+    "deha-iskele-hero":                 "Deha İskele ekibi İstanbul'da bina cephesine iskele kuruyor",
+    "istanbul-dis-cephe-iskelesi-kira": "İstanbul'da bir apartmanın dış cephesine kurulmuş cephe iskelesi",
+    "istanbul-h-tipi-kiralik-iskele":   "H tipi çerçeve iskele, bina cephesi boyunca kat kat kurulmuş hâlde",
+    "istanbul-flanshli-iskele-kiralam": "Flanşlı iskele sisteminin dikme ve rozet bağlantı detayı",
+    "istnbul-seyyat-iskele-kiralama":   "Tekerlekli seyyar kule iskele, çalışma platformu kurulmuş hâlde",
+    "istanbul-mobil-iskele-kiralama":   "Mobil iskele iç mekânda çalışma noktasına konumlandırılmış",
+    "istanbul-merdivenli-kiralik-iske": "Merdiven kulesi bulunan iskele, katlar arası güvenli geçiş",
+    "kiralik-konsol-iskele":            "Konsol iskele, yapıdan dışarı uzatılan konsollar üzerine kurulmuş",
+    "cati-iskelesi-ve-kenar-koruma":    "Çatı iskelesi ve saçak hizasındaki kenar koruma korkuluğu",
+    "istanbul-cati-iskelesi-kiralama":  "Yüksek bina cephesinde askıya alınmış asma iskele platformu",
+    "istanbul-sahne-ve-etkinlik-iskel": "Etkinlik için kurulmuş sahne ve ışık kulesi iskele sistemi",
+    "istanbul-kiralik-insaat-iskelesi": "Endüstriyel tesiste kurulmuş ağır hizmet iskele sistemi",
+    "istanbul-kiralik-iskele-firmasi":  "Modüler sistem iskele, düzensiz cepheye uyacak şekilde kurulmuş",
+    "istanbul-yeni-kiralik-iskele":     "Kamalı bağlantılı iskele sistemi, montaj aşamasında",
+    "istanbul-kiralik-insaat-iskele":   "İnşaat sahasında kurulu iskele sistemi ve çalışma platformları",
+    "istanbul-kaliteli-kiralik-iskele": "Bakımlı iskele malzemesi, kurulum öncesi sahada",
+    "istanbul-iskele-firmasi":          "Deha İskele ekibi kurulum sırasında",
+}

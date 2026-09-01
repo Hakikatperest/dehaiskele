@@ -345,3 +345,40 @@ html.js .gel.gorundu{opacity:1; transform:none}
 .harita-ac:hover strong{color:var(--sari-koyu)}
 .harita iframe{width:100%; height:100%; border:0; display:block}
 @media (max-width:620px){.harita{aspect-ratio:4/3}}
+
+/* ── Görsel vitrini ───────────────────────────────────────────────────────
+   ⚠️ KIRPMA YOK: object-fit:cover kullanılmıyor. Kaynak görsellerin oranı
+      1:1 ile 1.87:1 arasında değişiyor; kırpmak kompozisyonu bozuyor.
+   ⚠️ Görselin tamamı tel: bağlantısı (kullanıcı isteği). */
+.vitrin{display:block; position:relative; border-radius:var(--r); overflow:hidden;
+  text-decoration:none; color:inherit; background:var(--koyu-2);
+  box-shadow:var(--golge); margin:0 0 26px;
+  transition:transform .25s, box-shadow .25s}
+.vitrin img{display:block; width:100%; height:auto}   /* tam boy, kırpma yok */
+.vitrin::after{content:""; position:absolute; inset:auto 0 0 0; height:42%;
+  background:linear-gradient(180deg,transparent,rgba(10,13,18,.82)); pointer-events:none}
+.vitrin-ara{position:absolute; left:14px; right:14px; bottom:13px; z-index:1;
+  display:inline-flex; align-items:center; gap:9px; padding:11px 17px;
+  background:linear-gradient(160deg,var(--sari-2),var(--sari)); color:#1a1305;
+  border-radius:999px; font-weight:800; font-size:.95rem; width:fit-content;
+  max-width:calc(100% - 28px); box-shadow:0 6px 20px rgba(0,0,0,.3);
+  transition:transform .22s, box-shadow .22s}
+.vitrin-ara span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.vitrin:hover{transform:translateY(-3px); box-shadow:0 4px 12px rgba(10,14,20,.12),0 20px 46px rgba(10,14,20,.18)}
+.vitrin:hover .vitrin-ara{transform:translateY(-2px); box-shadow:0 9px 26px rgba(0,0,0,.36)}
+.hero-gorsel{margin-top:clamp(26px,4vw,40px)}
+.hero-gorsel .vitrin{margin-bottom:0}
+.metin .vitrin{margin:18px 0 22px}
+@media (max-width:620px){
+  .vitrin-ara{left:10px; right:10px; bottom:10px; padding:10px 14px; font-size:.88rem}
+}
+
+/* İkinci hat düğmesi — birincil sarıdan ayrışsın ama eşit erişilebilir olsun */
+.dg-hat2{background:rgba(255,255,255,.09); color:var(--ak);
+  border:1px solid rgba(255,194,51,.45)}
+.dg-hat2:hover{background:rgba(255,194,51,.16); border-color:var(--sari)}
+.bol .dg-hat2,.hesap .dg-hat2{background:var(--ak); color:var(--ink);
+  border:1px solid var(--sari-koyu)}
+.bol .dg-hat2:hover,.hesap .dg-hat2:hover{background:#fff8e6}
+.sabit-ara .sa-2{background:var(--koyu-3); color:var(--sari);
+  border:1px solid rgba(255,194,51,.4)}
