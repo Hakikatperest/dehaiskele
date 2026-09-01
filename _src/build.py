@@ -1194,7 +1194,7 @@ def anasayfa():
 <section class="hero hero-ana hero-tam">
   <div class="hero-fon">{gorsel(D.HERO_GORSEL, D.GORSEL_ALT[D.HERO_GORSEL], boy="100vw", oncelik=True)}</div>
   <div class="kap hero-metin">
-    <p class="hero-ust">İstanbul İskele Kiralama · DEHA İSKELE</p>
+    <p class="hero-ust">İstanbul İskele Kiralama Firması</p>
     {hero_h1(["İstanbul İskele Kiralama - Deha İskele"])}
     <p class="hero-slogan">“Güvenli Yapılar, Sağlam İskeleler.”</p>
     <p class="hero-alt">Cephenizi gelip ölçüyoruz, metrekare üzerinden net konuşuyoruz.
