@@ -1197,5 +1197,8 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
   overflow:hidden; background:var(--koyu); box-shadow:var(--golge)}
 .video-kutu video{display:block; width:100%; height:auto; aspect-ratio:16/9;
   background:var(--koyu)}
-.video-not{text-align:center; margin-top:14px}
+.video-not{text-align:center; margin:20px auto 0; max-width:62ch; color:var(--ink-2);
+  font-size:1.01rem; line-height:1.75}
+.video-not strong{color:var(--koyu)}
+.video-dg{justify-content:center; margin-top:18px}
 @media (max-width:620px){.video-kutu{border-radius:12px}}

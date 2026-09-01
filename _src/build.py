@@ -907,8 +907,11 @@ def video_bolum(baslik="İskele Kiralama Hizmetimiz"):
       <a href="{e(v['yol'])}">Videoyu indirin</a>.
     </video>
   </div>
-  <p class="not video-not">Süre {v['sure_sn']} saniye · video yalnız oynat'a bastığınızda
-     yükleniyor, sayfa açılışını yavaşlatmıyor.</p>
+  <p class="video-not">İstanbul'da iskele kiralama için güvenilir ve kurumsal firma olan
+     <strong>Deha İskele</strong>'yi tercih edebilirsiniz. Kaliteli ve sigortalı iskele
+     ürünleriyle hangi alanda ihtiyaç duyarsanız duyun, bir telefonla iskelenizi ayağınıza
+     kadar getiririz...</p>
+  <div class="dg-grup video-dg">{tel_btn()}{wa_btn()}</div>
 </div></section>{sema}"""
 
 # ── İlçe sayfası ────────────────────────────────────────────────────────────
