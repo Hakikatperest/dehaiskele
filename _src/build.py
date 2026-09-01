@@ -312,7 +312,7 @@ def vitrin(taban, oncelik=False, yazi=None, sinif=""):
     if not g:
         return ""
     etiket = yazi or "Hemen ara: " + S["tel"]
-    return (f'<a class="vitrin {sinif}" href="tel:{S["tel_link"]}" '
+    return (f'<a class="{("vitrin " + sinif).strip()}" href="tel:{S["tel_link"]}" '
             f'aria-label="{e(alt)} — {e(etiket)}">{g}'
             f'<span class="vitrin-ara">{svg_tel()}<span>{e(etiket)}</span></span></a>')
 
