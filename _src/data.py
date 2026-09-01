@@ -74,6 +74,21 @@ SOSYAL = [
     ("Instagram", "https://www.instagram.com/deha_iskele/", "instagram"),
 ]
 
+# ── Tanıtım videosu (kullanıcı 2026-09-01'de yükledi) ───────────────────────
+# ⚠️ 5,06 MB — ilk yükte İNMEZ: preload="none" + poster görseli. Video ancak
+#    ziyaretçi oynat'a basınca iniyor. (seyrannakliyat'ta da video/harita aynı
+#    mantıkla tıklanana kadar tek bayt indirmiyor.)
+VIDEO = {
+    "yol": "/video/istanbul-iskele-kiralama.mp4",
+    "poster": "istanbul-kiralik-iskele-firmasi",   # images/w900/…
+    "genislik": 640, "yukseklik": 360, "sure_sn": 47,
+    "sure_iso": "PT47S",
+    "ad": "İstanbul İskele Kiralama Hizmetlerimiz — Deha İskele",
+    "aciklama": "Deha İskele'nin İstanbul genelinde verdiği cephe iskelesi kiralama, "
+                "kurulum ve söküm hizmetlerini gösteren tanıtım videosu.",
+    "tarih": "2026-09-01",
+}
+
 # Firma tanıtım dosyası (kullanıcı 2026-09-01'de yükledi)
 TANITIM_PDF = "/ISTANBUL-KIRALIK-ISKELE-FIRMASI-DEHA-ISKELE.pdf"
 TANITIM_PDF_BOYUT = "2,6 MB"

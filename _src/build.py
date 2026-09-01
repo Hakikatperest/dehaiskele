@@ -875,6 +875,42 @@ def seo_icerik():
      <a href="tel:{S['tel_link']}">{e(S['tel'])}</a> numarasından arayabilirsiniz.</p>
 </div></section>"""
 
+
+# ── Tanıtım videosu ─────────────────────────────────────────────────────────
+# ⚠️ preload="none" + poster: 5 MB'lık dosya ilk yükte İNMİYOR, ancak oynat'a
+#    basılınca geliyor. ⛔ preload="auto"/"metadata" yapma, sayfa hızını bozar.
+def video_bolum(baslik="İskele Kiralama Hizmetimiz"):
+    v = D.VIDEO
+    poster = ""
+    if gorsel_var(v["poster"]):
+        poster = f'/images/w900/{v["poster"]}.webp'
+    sema = ldj({
+        "@context": "https://schema.org", "@type": "VideoObject",
+        "name": v["ad"], "description": v["aciklama"],
+        "thumbnailUrl": ALAN + poster if poster else ALAN + "/images/logo-512.png",
+        "uploadDate": v["tarih"], "duration": v["sure_iso"],
+        "contentUrl": ALAN + v["yol"],
+        "publisher": {"@id": ALAN + "/#isletme"},
+    })
+    return f"""<section class="bol video-bol"><div class="kap">
+  <div class="bol-bas">
+    <h2>{e(baslik)}</h2>
+    <p class="giris">İstanbul genelinde nasıl çalıştığımızı kısa bir videoda anlattık —
+       keşiften kuruluma, kurulumdan sökme kadar.</p>
+  </div>
+  <div class="video-kutu">
+    <video controls preload="none"{f' poster="{poster}"' if poster else ''}
+      width="{v['genislik']}" height="{v['yukseklik']}"
+      aria-label="{e(v['ad'])}">
+      <source src="{e(v['yol'])}" type="video/mp4">
+      Tarayıcınız video oynatmayı desteklemiyor.
+      <a href="{e(v['yol'])}">Videoyu indirin</a>.
+    </video>
+  </div>
+  <p class="not video-not">Süre {v['sure_sn']} saniye · video yalnız oynat'a bastığınızda
+     yükleniyor, sayfa açılışını yavaşlatmıyor.</p>
+</div></section>{sema}"""
+
 # ── İlçe sayfası ────────────────────────────────────────────────────────────
 def ilce_yolu(i):
     return f'/{i["slug"]}-iskele-kiralama/'
@@ -1314,7 +1350,7 @@ def anasayfa():
 {hesaplayici()}
 
 {seo_icerik()}
-
+{video_bolum()}
 {tanitim_bolum()}
 {sss_bolum(ANA_SSS)}
 {harita_bolum()}

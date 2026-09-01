@@ -1190,3 +1190,12 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 }
 /* PDF kapağı da tam görünsün */
 .pdf-ac img{max-height:none; object-fit:fill; width:100%; height:auto}
+
+/* ── Tanıtım videosu ──────────────────────────────────────────────────────
+   ⚠️ preload="none" olduğu için ilk yükte yalnız poster iniyor. */
+.video-kutu{max-width:900px; margin-inline:auto; border-radius:var(--r);
+  overflow:hidden; background:var(--koyu); box-shadow:var(--golge)}
+.video-kutu video{display:block; width:100%; height:auto; aspect-ratio:16/9;
+  background:var(--koyu)}
+.video-not{text-align:center; margin-top:14px}
+@media (max-width:620px){.video-kutu{border-radius:12px}}
