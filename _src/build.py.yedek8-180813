@@ -162,11 +162,6 @@ def svg_tel():
     return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
             '<path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.6c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.3 2.6z"/></svg>')
 
-def svg_saat():
-    return ('<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" '
-            'stroke="currentColor" stroke-width="2" stroke-linecap="round">'
-            '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>')
-
 def svg_wa():
     return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
             '<path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.8c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3a3 3 0 00-.9 2.2c0 1.3.9 2.5 1.1 2.7 1.3 2 2.8 2.9 4.6 3.4 1.1.3 1.7.3 2.2.2.6-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.4-.3z"/></svg>')
@@ -221,46 +216,18 @@ def head(baslik, aciklama, yol, schema=""):
 <a class="atla" href="#ana">İçeriğe geç</a>
 """
 
-def teklif_btn(sinif="dg dg-teklif"):
-    """Referans kurumsal düzendeki "TEKLİF AL" düğmesi. Statik site olduğu için
-    form yok — WhatsApp'a hazır mesajla gidiyor."""
-    from urllib.parse import quote
-    m = quote("Merhaba, iskele kiralama için teklif almak istiyorum.")
-    return (f'<a class="{sinif}" href="https://wa.me/{S["wa"]}?text={m}" '
-            f'target="_blank" rel="noopener"><span>Teklif Al</span>'
-            f'<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" '
-            f'stroke="currentColor" stroke-width="2.4" stroke-linecap="round">'
-            f'<path d="M7 17L17 7M8 7h9v9"/></svg></a>')
-
-def ust_serit():
-    """İnce iletişim şeridi — iki telefon, WhatsApp, adres."""
-    return f"""<div class="ust-serit">
-  <div class="kap ust-serit-ic">
-    <div class="us-sol">
-      <a href="tel:{S['tel_link']}">{svg_tel()}<span>{e(S['tel'])}</span></a>
-      <a href="tel:{S['tel2_link']}">{svg_tel()}<span>{e(S['tel2'])}</span></a>
-      <a href="https://wa.me/{S['wa']}" target="_blank" rel="noopener">{svg_wa()}<span>WhatsApp</span></a>
-    </div>
-    <div class="us-sag">
-      <span class="us-saat">{svg_saat()}<span>{e(S['saat'])}</span></span>
-      <span class="us-rozet">10+ yıl deneyim</span>
-    </div>
-  </div>
-</div>"""
-
 def ust_header(aktif=""):
     parcalar = []
     for u, m in MENU:
         sinif = ' class="aktif"' if u == aktif else ""
         parcalar.append('<a href="%s"%s>%s</a>' % (u, sinif, e(m)))
     ln = "".join(parcalar)
-    return f"""{ust_serit()}
-<header class="ust">
+    return f"""<header class="ust">
   <div class="kap ust-ic">
     <a class="logo-bag" href="/" aria-label="{e(S['marka'])} ana sayfa">{logo()}</a>
     <nav class="menu" id="menu" aria-label="Ana menü">{ln}</nav>
     <div class="ust-ara">
-      {teklif_btn()}
+      {tel_btn("dg dg-sari dg-kucuk")}
       <button class="hamburger" id="hamburger" aria-label="Menüyü aç" aria-expanded="false" aria-controls="menu">
         <span></span><span></span><span></span>
       </button>
@@ -311,8 +278,6 @@ def alt_bilgi():
         <p class="adres">{e(S['adres'])}</p>
         <p><a href="tel:{S['tel_link']}">{e(S['tel'])}</a><br>
            <a href="tel:{S['tel2_link']}">{e(S['tel2'])}</a></p>
-        <p class="alt-saat"><strong>{e(S['saat'])}</strong><br>
-           <span>{e(S['saat_gun'])} · acil durumlarda 7/24</span></p>
         <p><a href="https://www.google.com/maps/search/?api=1&amp;query={e(S['adres'].replace(' ', '+'))}"
            target="_blank" rel="noopener">Yol tarifi al</a></p>
       </div>
@@ -383,13 +348,6 @@ def isletme_semasi(alan_adi=None):
             "addressCountry": "TR",
         },
         "areaServed": {"@type": "City", "name": "İstanbul"},
-        "openingHours": S["saat_schema"],
-        "openingHoursSpecification": {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday",
-                          "Friday", "Saturday", "Sunday"],
-            "opens": "08:30", "closes": "19:00",
-        },
         "geo": {"@type": "GeoCoordinates",
                 "latitude": D.GEO["lat"], "longitude": D.GEO["lon"]},
         "hasMap": D.HARITA_LINK,
@@ -405,15 +363,6 @@ def sss_semasi(sorular):
                                for s, c in sorular]})
 
 # ── Bileşenler ──────────────────────────────────────────────────────────────
-
-def dalga(ters=False):
-    """Hero altındaki dalgalı ayraç — saf SVG, tek yol, ~0,3 KB."""
-    s = "dalga dalga-ters" if ters else "dalga"
-    return (f'<div class="{s}" aria-hidden="true">'
-            f'<svg viewBox="0 0 1440 90" preserveAspectRatio="none">'
-            f'<path d="M0,54 C240,90 480,10 720,32 C960,54 1200,86 1440,58 L1440,90 L0,90 Z"/>'
-            f'</svg></div>')
-
 def hero_h1(satirlar):
     # ⚠️ Satırlar arasına boşluk şart: bloklar görsel olarak alt alta ama metin
     #    çıkarımında bitişiyor ("kurarız,siz işinize bakın") — Google da böyle okuyor.
@@ -427,7 +376,7 @@ def guven_seridi():
     ogeler = [
         ("10 yılı aşkın deneyim", "İstanbul'da köklü bir saha geçmişi"),
         ("İstanbul'un tüm ilçeleri", "Avrupa ve Anadolu yakasının tamamına kurulum"),
-        ("Her gün 08:30 – 19:00", "Pazar dahil açığız; acil durumlarda 7/24 ulaşabilirsiniz"),
+        ("Günlük, haftalık, aylık", "Kiralama süresi işinize göre esniyor"),
         ("Kurulum, söküm ve sigorta", "İskeleyi biz kurar, biz sökeriz; süreç sigorta güvencesinde"),
     ]
     ic = "".join(f'<li><strong>{e(a)}</strong><span>{e(b)}</span></li>' for a, b in ogeler)
@@ -487,26 +436,17 @@ def hesaplayici():
   <div class="dg-grup">{ara}</div>
 </div></section>""".replace("{ara}", tel_btn(metin="Ölçüyle birlikte arayın: " + S["tel"]))
 
-def tur_kartlari(baslik="İskele Türleri", haric=None, giris=None):
-    """Referans kurumsal düzendeki yuvarlak görselli hizmet kartı.
-    ⚠️ Görsel <picture> içinde; .kart-daire'ye aspect-ratio + overflow verildi,
-       img'e object-fit:cover — burada kırpma İSTENİYOR (daire içine oturması için),
-       vitrin() görsellerindeki 'kırpma yok' kuralı bunun dışında."""
+def tur_kartlari(baslik="İskele Türleri", haric=None):
     kart = []
     for t in D.TURLER:
         if t["slug"] == haric:
             continue
-        g = gorsel(D.TUR_GORSEL.get(t["slug"], ""), D.GORSEL_ALT.get(D.TUR_GORSEL.get(t["slug"], ""), t["ad"]),
-                   boy="(min-width:1000px) 280px, 45vw")
-        daire = f'<span class="kart-daire">{g}</span>' if g else ""
         kart.append(
             f'<a class="kart gel gel-3b" href="/{t["slug"]}/">'
-            f'{daire}<span class="kart-ic"><h3>{e(t["ad"])}</h3><p>{e(t["ozet"])}</p>'
-            f'<span class="kart-ok">Detaylı Bilgi</span></span></a>')
-    gr = f'<p class="giris">{e(giris)}</p>' if giris else ""
-    return (f'<section class="bol turler"><div class="kap"><div class="bol-bas">'
-            f'<h2>{e(baslik)}</h2>{gr}</div>'
-            f'<div class="izgara izgara-kart">{"".join(kart)}</div></div></section>')
+            f'<h3>{e(t["ad"])}</h3><p>{e(t["ozet"])}</p>'
+            f'<span class="kart-ok">İncele</span></a>')
+    return (f'<section class="bol"><div class="kap"><h2>{e(baslik)}</h2>'
+            f'<div class="izgara">{"".join(kart)}</div></div></section>')
 
 def ilce_agi(baslik="İstanbul'un Tüm İlçelerinde İskele Kiralama", haric=None):
     """39 ilçeye giden bağlantı ağı. Anasayfada yaka yaka gruplanır."""
@@ -713,48 +653,6 @@ def ilce_h3_blok(i):
      Hangisinin işinize oturduğunu keşifte birlikte belirliyoruz.</p>
 """
 
-
-def bolunmus_bolum():
-    """Referans düzendeki turuncu/koyu split bölüm: solda öne çıkan sistemler,
-    sağda firma anlatımı. Görseller lazy, animasyon yalnız transform/opacity."""
-    one_cikan = [t for t in D.TURLER if t["slug"] in
-                 ("cephe-iskelesi", "flansli-iskele", "mobil-iskele", "asma-iskele")]
-    kart = []
-    for t in one_cikan:
-        g = gorsel(D.TUR_GORSEL.get(t["slug"], ""),
-                   D.GORSEL_ALT.get(D.TUR_GORSEL.get(t["slug"], ""), t["ad"]),
-                   boy="(min-width:1000px) 260px, 45vw")
-        kart.append(f'<a class="urun" href="/{t["slug"]}/">{g}'
-                    f'<span class="urun-ic"><h3>{e(t["ad"])}</h3>'
-                    f'<span class="urun-ok">Detaylı Bilgi</span></span></a>')
-    return f"""<section class="bolunmus">
-  <div class="kap bolunmus-ic">
-    <div class="bl-sol">
-      <h2>Öne Çıkan Sistemlerimiz</h2>
-      <p>En sık kurduğumuz dört sistem. Tamamı için iskele çeşitleri sayfasına bakın.</p>
-      <div class="urunler">{"".join(kart)}</div>
-      <a class="dg dg-cerceve" href="/iskele-cesitleri/"><span>18 sistemin tamamı</span></a>
-    </div>
-    <div class="bl-sag">
-      <h2>Güvenle Yükselen İskele</h2>
-      <p>Deha İskele olarak <strong>10 yılı aşkın sektör deneyimiyle</strong> İstanbul
-         genelinde iskele kiralıyoruz. Depomuz Eyüpsultan'da; ekip Avrupa ve Anadolu
-         yakasına aynı yerden çıkıyor.</p>
-      <p>Bu işte uzun süre kalmanın bir avantajı var: aynı ölçüdeki iki binanın neden aynı
-         kurulumu istemediğini artık keşfe gitmeden tahmin edebiliyoruz :) Dar sokak, eğimli
-         bahçe, bitişik nizam, otopark üstü zemin — her biri iskeleyi baştan değiştiriyor.
-         O yüzden telefonda kesin fiyat vermek yerine gelip bakmayı tercih ediyoruz.</p>
-      <p>Kurulum da söküm de bize ait, süreç sigorta güvencesinde. Her gün
-         <strong>08:30 – 19:00</strong> arası açığız; acil durumlarda saat fark etmeksizin
-         ulaşabilirsiniz.</p>
-      <div class="dg-grup">
-        <a class="dg dg-cerceve-ak" href="/hakkimizda/"><span>Bizi Tanıyın</span></a>
-        {teklif_btn("dg dg-sari")}
-      </div>
-    </div>
-  </div>
-</section>"""
-
 # ── İlçe sayfası ────────────────────────────────────────────────────────────
 def ilce_yolu(i):
     return f'/{i["slug"]}-iskele-kiralama/'
@@ -897,7 +795,7 @@ def tur_tanitim(t, i, uzun):
         f'<p>{e(yer)} {e(kucuk(ad))} kiralama fiyatlarını merak ediyorsanız doğru yerdesiniz :) '
         f'{e(t["ozet"])}</p>'
         f'<p>Bir telefon yeterli — projeyi dinleyip ölçüyü alalım, size net teklifimizi sunalım. '
-        f'Keşif ücretsiz, çalışma sigortalı; her gün 08:30-19:00 arası açığız. '
+        f'Keşif ücretsiz, çalışma sigortalı ve 7/24 ulaşabiliyorsunuz. '
         f'{e(t["kimin"])} için uygun. Sınırını da söyleyeyim: {e(kucuk(t["sinir"][:1]) + t["sinir"][1:])}</p>'
         f'<p>Detayını <a href="/{t["slug"]}/">{e(t["ad"])}</a> sayfasında anlattım.</p>')
 
@@ -1091,26 +989,22 @@ def anasayfa():
                  "inLanguage": "tr-TR"}))
     return head(baslik, aciklama, yol, sema) + ust_header(aktif="/") + f"""
 <main id="ana">
-<section class="hero hero-ana hero-tam">
-  <div class="hero-fon">{gorsel(D.HERO_GORSEL, D.GORSEL_ALT[D.HERO_GORSEL], boy="100vw", oncelik=True)}</div>
-  <div class="kap hero-ic">
+<section class="hero hero-ana">
+  <div class="kap">
     <p class="hero-ust">{e(S['sehir'])} · Cephe İskelesi Kiralama</p>
     {hero_h1(["İskeleyi biz kurarız,", "siz işinize bakın."])}
     <p class="hero-alt">Cephenizi gelip ölçüyoruz, metrekare üzerinden net konuşuyoruz.
-       Kurulum da söküm de bize ait — siz sadece işinizi yapıyorsunuz.</p>
-    <div class="dg-grup">{tel_btn()}{teklif_btn("dg dg-cerceve")}</div>
-    <ul class="hero-cip">
-      <li>10+ yıl deneyim</li><li>39 ilçe</li><li>18 iskele sistemi</li>
-      <li>Her gün 08:30 – 19:00</li>
-    </ul>
+       Kurulum da söküm de bize ait — siz sadece işinizi yapıyorsunuz. İstanbul'un iki
+       yakasında da aynı ekip çalışıyor.</p>
+    <div class="dg-grup">{tel_btn()}{tel2_btn()}{wa_btn()}</div>
+    <p class="hero-not">Merkez: {e(S['merkez_ilce'])} · Avrupa ve Anadolu yakasının tamamı</p>
   </div>
-  {dalga()}
+  <div class="kap hero-gorsel">{vitrin(D.HERO_GORSEL, oncelik=True)}</div>
 </section>
 
 {guven_seridi()}
-{tur_kartlari("Hizmetlerimiz", giris="Kiraladığımız 18 iskele sistemini detaylı olarak inceleyin.")}
-{bolunmus_bolum()}
 {kiralama_donemleri()}
+{tur_kartlari("Hangi İskeleye İhtiyacınız Var?")}
 {hesaplayici()}
 
 <section class="bol surec"><div class="kap dar metin">
@@ -1591,9 +1485,8 @@ def hakkimizda_sayfasi():
         Ekibimiz kuruyor, iş bitince söküp götürüyor.</li>
     <li><strong>Sigorta güvencesi.</strong> Kiralama süresince kapsamlı sigorta kapsamıyla
         çalışıyoruz.</li>
-    <li><strong>Her gün açığız.</strong> Pazar dahil 08:30-19:00 arası ulaşabilirsiniz;
-        iskelede acil bir durum varsa (fırtına sonrası, bir parça gevşemesi) saat fark
-        etmeksizin arayın — 7/24 destek hattımız için bu istisna geçerli.</li>
+    <li><strong>7/24 teknik destek.</strong> Bir parça gevşediyse, fırtınadan sonra bir şey
+        oynadıysa arayın — geliyoruz.</li>
     <li><strong>Esnek kiralama.</strong> Günlük, haftalık ve aylık seçenekler; iş ne kadar
         sürüyorsa o kadar ödüyorsunuz.</li>
     <li><strong>Her ölçekte iş.</strong> Küçük bir balkon onarımından fabrika bakımına kadar.</li>

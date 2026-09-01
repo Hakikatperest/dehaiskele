@@ -40,6 +40,12 @@ SITE = {
     "adres_pk": "34076",
     "aciklama": "İstanbul'un tüm ilçelerinde cephe iskelesi kiralama, kurulum ve söküm. "
                 "Merkezimiz Eyüpsultan; keşiften sökümüne kadar tek ekip.",
+    # Çalışma saatleri (kullanıcı 2026-09-01): her gün, Pazar dahil.
+    # ⚠️ "7/24" ile ÇELİŞMİYOR: 08:30-19:00 ofis/saha saati, acil destek hattı 7/24.
+    #    Kullanıcı bu ayrımı onayladı; sitede ikisi AYRI AYRI yazılıyor.
+    "saat": "08:30 – 19:00",
+    "saat_gun": "Her gün (Pazar dahil)",
+    "saat_schema": "Mo-Su 08:30-19:00",
 }
 
 # Sitede geçmesine İZİN VERİLEN iddialar. ⚠️ Bu listeye kullanıcı onayı olmadan
