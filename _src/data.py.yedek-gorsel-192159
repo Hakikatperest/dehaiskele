@@ -1,0 +1,1045 @@
+# -*- coding: utf-8 -*-
+"""
+dehaiskele.com — site verisi.
+
+Sayfa mimarisi (2026-09-01 kullanıcı kararı, kademeli):
+  1 anasayfa
+  + 39 ilçe sayfası  (her biri "cephe iskelesi / iskele kiralama / iskele kurulumu /
+                      iskele fiyatları" niyetlerini TEK sayfada kapsar — 4 ayrı sayfa AÇILMAZ)
+  + 8 iskele türü sayfası (İstanbul geneli; gerçekten farklı içerik, ilçeye göre ÇOĞALTILMAZ)
+  + 5 rehber sayfası
+  = 53 sayfa
+
+⛔ İlçe × tür matrisi (39×8 = 312 sayfa) BİLİNÇLİ olarak açılmadı: Google'ın
+"ölçeklendirilmiş içeriği kötüye kullanma" politikasına girer ve aynı niyetin
+varyasyonları birbirini yer. Emsal: duvarkagidikaplama.com aynı kararı verdi,
+web4medya'nın pSEO şehir sayfaları 410'landı.
+"""
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠️ PLACEHOLDER — kullanıcıdan gerçek bilgi bekleniyor (2026-09-01).
+#    Telefon, adres ve iddialar TEYİT EDİLMEDEN yayına alınmaz.
+# ─────────────────────────────────────────────────────────────────────────────
+SITE = {
+    "ad": "dehaiskele.com",
+    "marka": "Deha İskele",
+    "slogan": "İstanbul'un Tüm İlçelerine İskele Kiralama",
+    "alan": "https://dehaiskele.com",
+    "tel": "0530 352 61 53",
+    "tel_link": "+905303526153",
+    "wa": "905303526153",
+    # İkinci hat (kullanıcı 2026-09-01'de verdi). Birincisi meşgulse aranacak numara.
+    "tel2": "0532 346 40 11",
+    "tel2_link": "+905323464011",
+    "sehir": "İstanbul",
+    "merkez_ilce": "Eyüpsultan",          # depo/merkez — mesafe cümleleri buradan türer
+    "merkez_slug": "eyupsultan",
+    "adres": "Pirinççi, Eski Edirne Asf. No:120 A, 34076 Eyüpsultan/İstanbul",
+    "adres_sokak": "Pirinççi Mah. Eski Edirne Asfaltı No:120 A",
+    "adres_ilce": "Eyüpsultan",
+    "adres_pk": "34076",
+    "aciklama": "İstanbul'un tüm ilçelerinde cephe iskelesi kiralama, kurulum ve söküm. "
+                "Merkezimiz Eyüpsultan; keşiften sökümüne kadar tek ekip.",
+    # Çalışma saatleri (kullanıcı 2026-09-01): her gün, Pazar dahil.
+    # ⚠️ "7/24" ile ÇELİŞMİYOR: 08:30-19:00 ofis/saha saati, acil destek hattı 7/24.
+    #    Kullanıcı bu ayrımı onayladı; sitede ikisi AYRI AYRI yazılıyor.
+    "saat": "08:30 – 19:00",
+    "saat_gun": "Her gün (Pazar dahil)",
+    "saat_schema": "Mo-Su 08:30-19:00",
+}
+
+# Sitede geçmesine İZİN VERİLEN iddialar. ⚠️ Bu listeye kullanıcı onayı olmadan
+# yeni madde EKLEME (emsal: seyrannakliyat'ta aynı kural konuldu).
+ONAYLI_IDDIALAR = [
+    "İstanbul'un tüm ilçelerine hizmet",   # 2026-09-01, yazılı
+    "7/24 teknik destek",                  # 2026-09-01 + firma tanıtım PDF'i
+    "kapsamlı sigorta güvencesi",          # 2026-09-01 + firma tanıtım PDF'i
+    "ücretsiz keşif",                      # 2026-09-01, kullanıcı teyit etti
+    "10 yılı aşkın sektör deneyimi",       # firma tanıtım PDF'i, "Hakkımızda"
+    "günlük / haftalık / aylık kiralama",  # firma tanıtım PDF'i, "Esnek Kiralama Dönemleri"
+    "kurulum ve söküm dahil",              # firma tanıtım PDF'i, "Eksiksiz Hizmet Paketi"
+]
+# ⏳ HÂLÂ teyit bekleyen (sayfaya GİRMEZ): TSE/CE belgesi · İSG sertifikası ·
+#    depozito şartları · indirimli paket · SAATLİK kiralama (PDF'te de yok)
+# ⛔ PDF'teki "İstanbul'un en güvenilir iskele kiralama firmalarından biri" ifadesi
+#    KULLANILMADI — "en güvenilir" ispat gerektiren üstünlük iddiası. Yerine somut
+#    olan "10 yılı aşkın deneyim" kullanılıyor.
+
+# Firma tanıtım dosyası (kullanıcı 2026-09-01'de yükledi)
+TANITIM_PDF = "/ISTANBUL-KIRALIK-ISKELE-FIRMASI-DEHA-ISKELE.pdf"
+TANITIM_PDF_BOYUT = "2,6 MB"
+
+# ── Kiralama dönemleri (firma tanıtım PDF'i, "Esnek Kiralama Dönemleri") ─────
+# ⚠️ Sitede önce "kira aylık işliyor" yazıyordu — PDF günlük ve haftalık seçeneği de
+#    olduğunu gösterdi, düzeltildi. Saatlik kiralama PDF'te de YOK, yazılmıyor.
+KIRALAMA_DONEMLERI = [
+    ("Günlük kiralama", "Kısa süreli ve acil projeler için ideal çözüm."),
+    ("Haftalık kiralama", "Orta vadeli işler için uygun maliyetli seçenek."),
+    ("Aylık kiralama", "Uzun soluklu projeler için en ekonomik kiralama planı."),
+]
+# ⛔ "en iyi", "bir numara", "lider" gibi ÜSTÜNLÜK İDDİASI YAZILMAZ. Kullanıcı örnek
+#    metinde "Avcılar'ın en iyi firması" yazmıştı; Ticari Reklam ve Haksız Ticari
+#    Uygulamalar Yönetmeliği ispatlanamayan üstünlük iddiasını yasaklıyor, Reklam Kurulu
+#    ceza kesiyor. Kullanıcı 2026-09-01'de bu maddeyi seçmedi.
+
+FIYAT_GUNCELLEME = None       # ⏳ PLACEHOLDER (ör. "Eylül 2026")
+FIYATLAR = []                 # ⏳ PLACEHOLDER — m²/ay kira, kurulum, söküm, nakliye
+
+
+# ── 39 İstanbul ilçesi ────────────────────────────────────────────────────────
+# ad/slug/yaka/mahalle/komsu coğrafi veri. "doku" ve "vurgu" iskele işine özgü
+# saha gerçekleri — ⚠️ uydurma vaka veya rakam YOK, farklılaşma yapı stoğu, zemin,
+# erişim ve rüzgâr üzerinden kuruluyor.
+# komsu grafiği build sırasında simetrikleştirilir (bkz build.komsuluk_kur).
+ILCELER = [
+    dict(ad='Adalar', slug='adalar', yaka='Anadolu',
+         mahalle=['Büyükada', 'Heybeliada', 'Burgazada', 'Kınalıada'],
+         doku='ahşap köşkler, iki-üç katlı taş binalar ve yazlık evler',
+         vurgu="Adalar'da motorlu araç kısıtlı; iskele borusu vapurla gidiyor ve karada el arabasıyla taşınıyor. Bu yüzden ölçüyü bir kerede doğru alıp kaç boru gideceğini şaşmadan hesaplıyoruz, eksik parça ikinci sefer demek",
+         komsu=['kartal', 'maltepe', 'pendik']),
+    dict(ad='Arnavutköy', slug='arnavutkoy', yaka='Avrupa',
+         mahalle=['Hadımköy', 'Taşoluk', 'Bolluca', 'Haraççı', 'Merkez'],
+         doku='müstakil evler, yeni toplu konut siteleri ve depo-fabrika yapıları',
+         vurgu="Arnavutköy'de cephe işinin yanında depo ve imalathanelerin iç mekân iskelesi isteniyor. Zemin çoğu yerde toprak; taban plakasının altına yük dağıtıcı altlık koymadan ayak kurmuyoruz",
+         komsu=['basaksehir', 'eyupsultan', 'catalca', 'buyukcekmece', 'sultangazi']),
+    dict(ad='Ataşehir', slug='atasehir', yaka='Anadolu',
+         mahalle=['Barbaros', 'Küçükbakkalköy', 'İçerenköy', 'Ferhatpaşa', 'Ataşehir Merkez'],
+         doku='rezidans kuleleri, plaza katları ve 2000 sonrası siteler',
+         vurgu="Ataşehir'de bina yüksekliği çoğu zaman klasik cephe iskelesinin ekonomik sınırını aşıyor; belirli bir katın üstünde askılı platform ya da cephe asansörü konuşuyoruz. Site yönetiminden çalışma saati izni almak da kurulum planının parçası",
+         komsu=['kadikoy', 'umraniye', 'maltepe', 'sancaktepe']),
+    dict(ad='Avcılar', slug='avcilar', yaka='Avrupa',
+         mahalle=['Cihangir', 'Ambarlı', 'Denizköşkler', 'Merkez', 'Üniversite'],
+         doku='1990-2010 arası apartmanlar, öğrenci daireleri ve sahil siteleri',
+         vurgu="Avcılar'da deprem güçlendirme ve mantolama işi yoğun. Güçlendirmede iskele haftalarca değil aylarca duruyor; kira süresini baştan konuşmazsak hesap sonradan şaşıyor",
+         komsu=['esenyurt', 'kucukcekmece', 'beylikduzu', 'basaksehir']),
+    dict(ad='Bağcılar', slug='bagcilar', yaka='Avrupa',
+         mahalle=['Güneşli', 'Kirazlı', 'Yıldıztepe', 'Demirkapı', 'Merkez'],
+         doku='yoğun apartman dokusu, iş hanları ve imalathane binaları',
+         vurgu="Bağcılar'da sokaklar dar ve gün boyu park dolu. Kamyonun yanaşacağı saati önceden ayarlayıp malzemeyi sabah erken indiriyoruz, yoksa boru araçta bekliyor",
+         komsu=['bahcelievler', 'gungoren', 'esenler', 'basaksehir', 'kucukcekmece']),
+    dict(ad='Bahçelievler', slug='bahcelievler', yaka='Avrupa',
+         mahalle=['Şirinevler', 'Yenibosna', 'Soğanlı', 'Kocasinan', 'Siyavuşpaşa'],
+         doku='orta yaşlı apartmanlar, AVM çevresi iş yerleri ve ofis katları',
+         vurgu="Bahçelievler'de iş çoğunlukla boya ve mantolama; beş-altı katlı bloklarda standart çerçeve iskele yeterli oluyor, sistem iskeleye çıkmaya gerek kalmıyor",
+         komsu=['bagcilar', 'bakirkoy', 'gungoren', 'kucukcekmece']),
+    dict(ad='Bakırköy', slug='bakirkoy', yaka='Avrupa',
+         mahalle=['Ataköy', 'Yeşilköy', 'Florya', 'Yeşilyurt', 'Şenlikköy'],
+         doku='Ataköy siteleri, Florya-Yeşilköy villaları ve sahil rezidansları',
+         vurgu="Bakırköy'de sahil şeridinde rüzgâr hafife alınmaz. Cepheye bağlantı sıklığını artırıyoruz; özellikle koruma filesi gerileceksek rüzgâr yükü ciddi büyüdüğü için bağlantı planı ona göre çıkıyor",
+         komsu=['bahcelievler', 'zeytinburnu', 'kucukcekmece']),
+    dict(ad='Başakşehir', slug='basaksehir', yaka='Avrupa',
+         mahalle=['Kayaşehir', 'Başak', 'Ziya Gökalp', 'Bahçeşehir', 'Güvercintepe'],
+         doku='yeni toplu konut blokları, rezidanslar ve Bahçeşehir villaları',
+         vurgu="Başakşehir'de bloklar yüksek ve cepheler uzun. Kat yüksekliği ile cephe uzunluğunu çarpıp metrekareyi baştan çıkarıyoruz; böylece iskele tek seferde kuruluyor, ikinci kamyon gelmiyor",
+         komsu=['arnavutkoy', 'esenyurt', 'bagcilar', 'sultangazi', 'avcilar', 'kucukcekmece']),
+    dict(ad='Bayrampaşa', slug='bayrampasa', yaka='Avrupa',
+         mahalle=['Yenidoğan', 'Muratpaşa', 'Kartaltepe', 'Terazidere', 'Vatan'],
+         doku='eski apartmanlar, oto sanayi siteleri ve ticari zemin katlar',
+         vurgu="Bayrampaşa'da bina önü neredeyse hep dükkan. Zemin katta yaya geçiş tüneli kurup girişi açık bırakıyoruz; esnaf bir gün bile kapatmak zorunda kalmıyor",
+         komsu=['esenler', 'gaziosmanpasa', 'eyupsultan', 'zeytinburnu', 'fatih']),
+    dict(ad='Beşiktaş', slug='besiktas', yaka='Avrupa',
+         mahalle=['Levent', 'Etiler', 'Ortaköy', 'Bebek', 'Gayrettepe'],
+         doku='yokuş sokaklardaki eski apartmanlar, tarihi yapılar ve sahil binaları',
+         vurgu="Beşiktaş'ta sokakların çoğu yokuş. Taban plakalarını kademeli oturtup ayarlı ayakla kotu düzeltmek gerekiyor; düz zemin varsayımıyla gelen ekip iskeleyi terazisine oturtamaz",
+         komsu=['sisli', 'sariyer', 'kagithane', 'beyoglu']),
+    dict(ad='Beykoz', slug='beykoz', yaka='Anadolu',
+         mahalle=['Kavacık', 'Paşabahçe', 'Anadoluhisarı', 'Çubuklu', 'Acarkent'],
+         doku='yamaç arazideki müstakil evler, villalar ve korunan yeşil alan yapıları',
+         vurgu="Beykoz'da bahçe zemini eğimli ve yumuşak. Ayakların altına ahşap altlık atıp yükü dağıtıyoruz; ayrıca ağaç dallarına mesafe bırakmak iskele geometrisini baştan belirliyor",
+         komsu=['uskudar', 'umraniye', 'cekmekoy', 'sariyer']),
+    dict(ad='Beylikdüzü', slug='beylikduzu', yaka='Avrupa',
+         mahalle=['Barış', 'Cumhuriyet', 'Gürpınar', 'Yakuplu', 'Adnan Kahveci'],
+         doku='yeni siteler, geniş bloklar ve otopark üstü peyzaj alanları',
+         vurgu="Beylikdüzü'nde iskele çoğu zaman kapalı otoparkın üstündeki peyzaj zeminine kuruluyor. O döşemenin taşıyabileceği yükü site yönetiminden öğrenmeden ayak basmıyoruz",
+         komsu=['esenyurt', 'buyukcekmece', 'avcilar']),
+    dict(ad='Beyoğlu', slug='beyoglu', yaka='Avrupa',
+         mahalle=['Cihangir', 'Galata', 'Tarlabaşı', 'Kasımpaşa', 'Taksim'],
+         doku='tarihi cepheler, dar sokaklar ve restorasyon bekleyen yapılar',
+         vurgu="Beyoğlu'nda sokağı kapatmak çoğu zaman mümkün değil. İskele ayak izini daraltıp üst katlarda konsol çıkma yapıyoruz; koruma alanındaki binalarda izin süreci işin kendisi kadar zaman alıyor",
+         komsu=['sisli', 'besiktas', 'fatih', 'kagithane']),
+    dict(ad='Büyükçekmece', slug='buyukcekmece', yaka='Avrupa',
+         mahalle=['Mimarsinan', 'Kumburgaz', 'Atatürk', 'Türkoba', 'Güzelce'],
+         doku='sahil siteleri, göl çevresi müstakil evler ve yazlık bloklar',
+         vurgu="Büyükçekmece'de hem deniz hem göl rüzgârı var. Bağlantı sıklığını artırıp iskeleyi cepheye daha sık kenetliyoruz; file gerilecekse bunu baştan söylüyoruz",
+         komsu=['beylikduzu', 'esenyurt', 'catalca', 'silivri']),
+    dict(ad='Çatalca', slug='catalca', yaka='Avrupa',
+         mahalle=['Ferhatpaşa', 'Kaleiçi', 'Ortaköy', 'Hallaçlı', 'Merkez'],
+         doku='köy yerleşimleri, tarım yapıları ve tek-iki katlı evler',
+         vurgu="Çatalca'da mesafe uzun. Ekip gidip bir günde kurup dönecek şekilde planlıyoruz; eksik malzeme için ikinci sefer hem zaman hem nakliye demek",
+         komsu=['arnavutkoy', 'buyukcekmece', 'silivri']),
+    dict(ad='Çekmeköy', slug='cekmekoy', yaka='Anadolu',
+         mahalle=['Taşdelen', 'Alemdağ', 'Ömerli', 'Mimar Sinan', 'Merkez'],
+         doku='yeni siteler, müstakil evler ve orman kenarı yapılar',
+         vurgu="Çekmeköy'de yapı yeni ama arazi eğimli. Kışın zemin çamurlaşınca ayakların altına plaka koymadan kurulum yapmıyoruz, iskele oturur",
+         komsu=['umraniye', 'sancaktepe', 'beykoz', 'sultanbeyli']),
+    dict(ad='Esenler', slug='esenler', yaka='Avrupa',
+         mahalle=['Menderes', 'Havaalanı', 'Fevzi Çakmak', 'Nine Hatun', 'Oruçreis'],
+         doku='yoğun apartman dokusu ve kentsel dönüşüm şantiyeleri',
+         vurgu="Esenler'de iş çoğunlukla dönüşüm şantiyesi; iskele aylarca duruyor. Uzun kirada iskele etiketini düzenli kontrol etmek şart, çünkü ekip değişiyor ve kimin ne zaman doğruladığı kayıtta olmalı",
+         komsu=['bagcilar', 'bayrampasa', 'gungoren', 'sultangazi', 'gaziosmanpasa']),
+    dict(ad='Esenyurt', slug='esenyurt', yaka='Avrupa',
+         mahalle=['Cumhuriyet', 'Yenikent', 'İnönü', 'Örnek', 'Talatpaşa', 'Saadetdere'],
+         doku='yüksek konut blokları, yeni siteler ve yoğun kiralık daire stoğu',
+         vurgu="Esenyurt'ta on iki-on beş katlı blok çok. Bu yükseklikte klasik çerçeve iskele yerine modüler sistem iskele ve hesaplanmış bağlantı düzeni gerekiyor; kat sayısını duymadan fiyat söylemiyoruz",
+         komsu=['avcilar', 'beylikduzu', 'basaksehir', 'buyukcekmece', 'kucukcekmece']),
+    dict(ad='Eyüpsultan', slug='eyupsultan', yaka='Avrupa',
+         mahalle=['Alibeyköy', 'Göktürk', 'Kemerburgaz', 'Yeşilpınar', 'Merkez'],
+         doku='tarihi doku, yamaç sokaklar ve Alibeyköy tarafındaki yeni bloklar',
+         vurgu='Eyüpsultan iki ayrı iş gibi: tarihi tarafta dar yol ve izin, Alibeyköy tarafında yeni yüksek bloklar. Keşfe giderken hangisi olduğunu bilmek ekip ve malzeme planını değiştiriyor',
+         komsu=['kagithane', 'gaziosmanpasa', 'sariyer', 'arnavutkoy', 'bayrampasa']),
+    dict(ad='Fatih', slug='fatih', yaka='Avrupa',
+         mahalle=['Aksaray', 'Fındıkzade', 'Çapa', 'Balat', 'Sultanahmet'],
+         doku='tarihi yarımada yapıları, dar sokaklar ve restorasyon işleri',
+         vurgu="Fatih'te sokak genişliği yer yer üç metrenin altına iniyor. İskelenin yere basan ayak izini daraltıp yukarıda konsolla açılıyoruz; koruma alanı izni olmadan tek boru dikilmiyor",
+         komsu=['zeytinburnu', 'bayrampasa', 'eyupsultan', 'beyoglu']),
+    dict(ad='Gaziosmanpaşa', slug='gaziosmanpasa', yaka='Avrupa',
+         mahalle=['Karadeniz', 'Karayolları', 'Sarıgöl', 'Yenimahalle', 'Merkez'],
+         doku='yoğun apartman dokusu ve dönüşüm alanları',
+         vurgu="Gaziosmanpaşa'da binalar çoğu zaman bitişik nizam; yan cephede iskele kuracak boşluk yok. O yüzde ya konsol ya da askı çözümü konuşuyoruz, kurulamayacak yere kurulur demiyoruz",
+         komsu=['eyupsultan', 'sultangazi', 'bayrampasa', 'esenler']),
+    dict(ad='Güngören', slug='gungoren', yaka='Avrupa',
+         mahalle=['Merter', 'Tozkoparan', 'Haznedar', 'Güven', 'Merkez'],
+         doku='yoğun apartmanlar ve tekstil imalathaneleri',
+         vurgu="Güngören'de iş yerleri gündüz çalışıyor. Kurulumu akşam ya da hafta sonuna alıyoruz; üretim durmuyor, biz de kalabalık olmadan çalışıyoruz",
+         komsu=['bagcilar', 'bahcelievler', 'esenler', 'zeytinburnu']),
+    dict(ad='Kadıköy', slug='kadikoy', yaka='Anadolu',
+         mahalle=['Moda', 'Caferağa', 'Fenerbahçe', 'Kozyatağı', 'Göztepe', 'Bostancı'],
+         doku='Moda ve merkezdeki eski apartmanlar, cadde üstü binalar',
+         vurgu="Kadıköy'de cadde üstü binalarda yaya trafiği çok yoğun. Koruyucu tünel kurmadan cephe işine başlamıyoruz; montajı da yayanın az olduğu saate alıyoruz",
+         komsu=['atasehir', 'maltepe', 'uskudar']),
+    dict(ad='Kağıthane', slug='kagithane', yaka='Avrupa',
+         mahalle=['Çağlayan', 'Gültepe', 'Seyrantepe', 'Merkez', 'Hamidiye'],
+         doku='hızla dönüşen konut stoğu, yeni ofis blokları ve eski apartmanlar',
+         vurgu="Kağıthane'de yeni ofis bloğu ile kırk yıllık apartman yan yana. Aynı sokakta iki bina için iki farklı iskele tipi çıkabiliyor, keşfi bina bina yapıyoruz",
+         komsu=['sisli', 'besiktas', 'eyupsultan', 'beyoglu', 'sariyer']),
+    dict(ad='Kartal', slug='kartal', yaka='Anadolu',
+         mahalle=['Soğanlık', 'Yakacık', 'Cevizli', 'Orhantepe', 'Kordonboyu'],
+         doku='sahil siteleri, E-5 çevresi apartmanlar ve dönüşüm şantiyeleri',
+         vurgu="Kartal'da dönüşüm yoğun, iskele uzun süre kalıyor. Aylık kira ile toplam süreyi baştan konuşuyoruz ki iş bitiminde sürpriz olmasın",
+         komsu=['maltepe', 'pendik', 'sancaktepe', 'sultanbeyli']),
+    dict(ad='Küçükçekmece', slug='kucukcekmece', yaka='Avrupa',
+         mahalle=['Halkalı', 'Sefaköy', 'Cennet', 'Atakent', 'İkitelli'],
+         doku='göl çevresi yoğun konut stoğu ve eski apartmanlar',
+         vurgu="Küçükçekmece'de göl tarafında zemin yumuşak. Taban plakasının altına yük dağıtıcı altlık koymadan kurulum yapmıyoruz; ayak zamanla gömülürse iskele terazisini kaybeder",
+         komsu=['bagcilar', 'bahcelievler', 'avcilar', 'basaksehir', 'bakirkoy']),
+    dict(ad='Maltepe', slug='maltepe', yaka='Anadolu',
+         mahalle=['Bağlarbaşı', 'Cevizli', 'Küçükyalı', 'Altayçeşme', 'Başıbüyük'],
+         doku='sahil siteleri, yokuş sokaklardaki apartmanlar ve dönüşüm alanları',
+         vurgu="Maltepe'de sahilde rüzgâr, yukarı mahallelerde yokuş var. İki durumda da iskelenin cepheye bağlantısı standarttan sık tutuluyor",
+         komsu=['kadikoy', 'kartal', 'atasehir', 'sancaktepe']),
+    dict(ad='Pendik', slug='pendik', yaka='Anadolu',
+         mahalle=['Kaynarca', 'Velibaba', 'Çamçeşme', 'Kurtköy', 'Güzelyalı'],
+         doku='sanayi tesisleri, yeni siteler ve merkez apartmanları',
+         vurgu="Pendik'te fabrika ve atölyelerin iç mekân iskelesi de isteniyor. Yüksek tavanlı hacimlerde kule iskele ya da modüler platform kuruyoruz, cephe iskelesiyle aynı iş değil",
+         komsu=['kartal', 'tuzla', 'sultanbeyli', 'sancaktepe']),
+    dict(ad='Sancaktepe', slug='sancaktepe', yaka='Anadolu',
+         mahalle=['Sarıgazi', 'Abdurrahmangazi', 'Yenidoğan', 'Emek', 'Merve'],
+         doku='yeni siteler, müstakil evler ve gelişen konut alanları',
+         vurgu="Sancaktepe'de yapı stoğu yeni; cepheler düzgün ve kurulum hızlı ilerliyor. Bu da kira süresini kısaltıyor, maliyet doğrudan düşüyor",
+         komsu=['umraniye', 'cekmekoy', 'sultanbeyli', 'kartal', 'atasehir']),
+    dict(ad='Sarıyer', slug='sariyer', yaka='Avrupa',
+         mahalle=['Maslak', 'Tarabya', 'Yeniköy', 'İstinye', 'Bahçeköy'],
+         doku='yamaç arazideki villalar, orman kenarı evler ve sahil yapıları',
+         vurgu="Sarıyer'de eğim çok sert; aynı binanın iki ucunda iskele farklı kotlardan başlıyor. Ayarlı ayak ve kademeli taban olmadan bu arazide düzgün iskele kurulmaz",
+         komsu=['besiktas', 'sisli', 'kagithane', 'eyupsultan', 'beykoz']),
+    dict(ad='Silivri', slug='silivri', yaka='Avrupa',
+         mahalle=['Alibey', 'Selimpaşa', 'Değirmenköy', 'Gümüşyaka', 'Merkez'],
+         doku='yazlık siteler, müstakil evler ve sahil şeridi yapıları',
+         vurgu="Silivri'de nakliye mesafesi işin maliyetinde görünür bir kalem. Kurulum ve sökümü tek programda planlayıp gidiş sayısını azaltıyoruz",
+         komsu=['buyukcekmece', 'catalca']),
+    dict(ad='Sultanbeyli', slug='sultanbeyli', yaka='Anadolu',
+         mahalle=['Abdurrahmangazi', 'Mehmet Akif', 'Battalgazi', 'Fatih', 'Hasanpaşa'],
+         doku='yoğun konut stoğu ve dönüşüm alanları',
+         vurgu="Sultanbeyli'de dönüşüm işleri uzun sürüyor. Uzun kirada iskeleyi düzenli kontrol edip etiketini güncelliyoruz; aylar süren şantiyede bu kayıt işin güvenliği kadar denetimi de ilgilendiriyor",
+         komsu=['sancaktepe', 'pendik', 'kartal', 'cekmekoy']),
+    dict(ad='Sultangazi', slug='sultangazi', yaka='Avrupa',
+         mahalle=['Cebeci', 'Habibler', '50. Yıl', 'Uğur Mumcu', 'Esentepe'],
+         doku='yoğun apartman dokusu, dar sokaklar ve dönüşüm şantiyeleri',
+         vurgu="Sultangazi'de sokak dar, bina bitişik. Malzemeyi indirecek yeri keşifte işaretliyoruz; yoksa kamyon sokağa giremeyip iş yarım kalıyor",
+         komsu=['gaziosmanpasa', 'eyupsultan', 'esenler', 'basaksehir', 'arnavutkoy']),
+    dict(ad='Şile', slug='sile', yaka='Anadolu',
+         mahalle=['Merkez', 'Ağva', 'Çayırbaşı', 'Doğancılı', 'Kumbaba'],
+         doku='yazlık evler, müstakil konutlar ve düşük katlı yapılar',
+         vurgu="Şile'de rüzgâr açık ve mesafe uzun. Bina alçak olsa bile bağlantıyı ihmal etmiyoruz; ayrıca sezonda yoğunluk arttığı için tarihi önceden almak gerekiyor",
+         komsu=['cekmekoy', 'beykoz', 'pendik']),
+    dict(ad='Şişli', slug='sisli', yaka='Avrupa',
+         mahalle=['Nişantaşı', 'Mecidiyeköy', 'Fulya', 'Bomonti', 'Esentepe'],
+         doku='cadde üstü eski apartmanlar, plazalar ve tarihi yapılar',
+         vurgu="Şişli'de cadde üstünde çalışmak izin işi; kaldırım kapatılacaksa belediye tarafı önceden halledilmeli. Yüksek plazalarda ise cephe iskelesi yerine askı sistemi daha mantıklı oluyor",
+         komsu=['besiktas', 'kagithane', 'beyoglu', 'sariyer']),
+    dict(ad='Tuzla', slug='tuzla', yaka='Anadolu',
+         mahalle=['Aydınlı', 'İçmeler', 'Postane', 'Şifa', 'Orhanlı'],
+         doku='tersaneler, sanayi tesisleri ve merkez konut alanları',
+         vurgu="Tuzla'da tersane ve fabrika işlerinde iş güvenliği denetimi sıkı, haklı olarak. Ağır yük taşıyacak iskelede taşıma sınıfını ve bağlantı planını yazılı veriyoruz",
+         komsu=['pendik']),
+    dict(ad='Ümraniye', slug='umraniye', yaka='Anadolu',
+         mahalle=['Atakent', 'Çakmak', 'Tepeüstü', 'Dudullu', 'Finanskent'],
+         doku='yoğun konut siteleri, ofis blokları ve eski apartmanlar',
+         vurgu="Ümraniye'de site içi işlerde yönetim izni ve çalışma saati kısıtı standart. Kurulum tarihini yönetimle beraber belirlemek işi hızlandırıyor",
+         komsu=['uskudar', 'atasehir', 'sancaktepe', 'cekmekoy', 'beykoz']),
+    dict(ad='Üsküdar', slug='uskudar', yaka='Anadolu',
+         mahalle=['Acıbadem', 'Kuzguncuk', 'Çengelköy', 'Bulgurlu', 'Altunizade'],
+         doku='yamaç sokaklardaki apartmanlar, tarihi yapılar ve sahil binaları',
+         vurgu="Üsküdar'da hem eğim hem tarihi doku var. Dar sokakta ayak izi daraltmak, yokuşta kotu düzeltmek aynı binada birlikte çıkabiliyor",
+         komsu=['kadikoy', 'umraniye', 'beykoz', 'atasehir']),
+    dict(ad='Zeytinburnu', slug='zeytinburnu', yaka='Avrupa',
+         mahalle=['Merkezefendi', 'Telsiz', 'Kazlıçeşme', 'Beştelsiz', 'Sümer'],
+         doku='yoğun konut stoğu, sanayiden dönüşen alanlar ve sahil yolu binaları',
+         vurgu="Zeytinburnu'nda sahil yolu tarafında trafik yoğun; kurulum saatini trafiğin düştüğü zamana alıyoruz. Dönüşen sanayi alanlarında ise iskele şantiye süresince kalıyor",
+         komsu=['bakirkoy', 'bahcelievler', 'fatih', 'gungoren', 'bayrampasa']),
+]
+
+
+# ── 8 iskele türü sayfası (İstanbul geneli) ──────────────────────────────────
+# ⛔ Bunlar ilçeye göre ÇOĞALTILMAZ. "Esenyurt kule iskele" ile "Kartal kule iskele"
+#    arasında yazılacak farklı bir şey yok; ilçe farkı ilçe sayfalarında anlatılıyor.
+TURLER = [
+    dict(slug="cephe-iskelesi", ad="Cephe İskelesi",
+         h1="Cephe İskelesi Kiralama",
+         ozet="Bina dış cephesi boyunca kurulan, en yaygın iskele tipi. Boya, mantolama, "
+               "sıva ve dış cephe onarımının standardı.",
+         kimin="Apartman, site, müstakil ev ve düşük-orta katlı iş yeri cepheleri",
+         teknik=[
+             "Çerçeveli (H tipi) sistemde kat yüksekliği genellikle 2 metre; cephe metrekaresi "
+             "kat sayısı ile cephe uzunluğundan çıkar.",
+             "Platform genişliği çalışma alanını belirler; malzeme de duracaksa dar platform yetmez.",
+             "Cepheye bağlantı (ankraj) sıklığı rüzgâr yüküne ve koruma filesi olup olmamasına göre değişir.",
+         ],
+         sinir="Çok yüksek bloklarda ve düzensiz cephelerde ekonomik sınırı aşar; "
+               "orada sistem iskele ya da askılı platform konuşulur."),
+    dict(slug="sistem-iskele", ad="Sistem (Modüler) İskele",
+         h1="Sistem İskele Kiralama",
+         ozet="Rozetli/modüler bağlantıyla kurulan, düzensiz geometriye ve ağır yüke uyum "
+               "sağlayan iskele sistemi.",
+         kimin="Yüksek bloklar, endüstriyel tesisler, düzensiz cepheler ve ağır yük taşıyacak kurulumlar",
+         teknik=[
+             "Dikme üzerindeki rozetlere yatay ve diyagonal elemanlar bağlanır; açı ve kot serbestliği yüksektir.",
+             "Çıkma, geçiş ve kademe gerektiren cephelerde çerçeve iskeleye göre çok daha esnektir.",
+             "Taşıma sınıfı ve bağlantı düzeni kurulum öncesi planlanır.",
+         ],
+         sinir="Malzeme ve işçilik maliyeti çerçeve iskeleden yüksektir; düz ve alçak cephede gereksizdir."),
+    dict(slug="kule-iskele", ad="Kule İskele (Seyyar İskele)",
+         h1="Kule İskele ve Seyyar İskele Kiralama",
+         ozet="Tekerlekli, hareket ettirilebilen kule tipi iskele. Nokta işler ve iç mekân için.",
+         kimin="İç mekân tadilatı, aydınlatma-tabela montajı, depo ve fabrika bakımı, kısa süreli işler",
+         teknik=[
+             "Tekerlekler frenlenmeden ve ayarlı ayaklar kilitlenmeden platforma çıkılmaz.",
+             "Yükseklik/taban oranı sınırlıdır; gerekli olduğunda denge ayakları (stabilizatör) takılır.",
+             "Üzerinde insan varken kule ASLA hareket ettirilmez.",
+         ],
+         sinir="Bina cephesinin tamamı için uygun değildir; sürekli yer değiştirmek zaman kaybıdır."),
+    dict(slug="mantolama-iskelesi", ad="Mantolama İskelesi",
+         h1="Mantolama İskelesi Kiralama",
+         ozet="Isı yalıtımı uygulaması için, cepheden yalıtım kalınlığı kadar boşluk bırakılarak "
+               "kurulan cephe iskelesi.",
+         kimin="Dış cephe ısı yalıtımı (mantolama) yapan apartman ve site yönetimleri",
+         teknik=[
+             "İskele cepheye yapışık kurulmaz; levha kalınlığı, yapıştırıcı ve sıva payı kadar boşluk bırakılır.",
+             "Ankraj noktaları yalıtım sonrası kapatılacağı için yeri ve sayısı önceden konuşulur.",
+             "Levha ve sıva torbası platformda duracağı için taşıma kapasitesi buna göre seçilir.",
+         ],
+         sinir="Boşluk yanlış hesaplanırsa iş ortasında iskeleyi kaydırmak gerekir; keşifte kalınlık netleşmeli."),
+    dict(slug="boya-badana-iskelesi", ad="Boya ve Bakım İskelesi",
+         h1="Boya ve Bakım İskelesi Kiralama",
+         ozet="Dış cephe boyası için kurulan, genellikle kısa süreli cephe iskelesi.",
+         kimin="Apartman dış cephe boyası, sıva onarımı ve derz yenileme işleri",
+         teknik=[
+             "Süre kısa olduğu için kurulum-söküm hızı toplam maliyette kira kadar belirleyicidir.",
+             "Boya sıçramasına karşı cephe filesi gerildiğinde rüzgâr yükü artar, bağlantı sıklaşır.",
+             "Zemin katta yaya geçişi varsa koruyucu tünel kurulur.",
+         ],
+         sinir="Tek duvar ya da küçük bir yüzey için cephe iskelesi pahalı kalır; kule iskele daha uygun olabilir."),
+    dict(slug="cati-iskelesi", ad="Çatı İskelesi ve Kenar Koruma",
+         h1="Çatı İskelesi ve Kenar Koruma Sistemi",
+         ozet="Çatı onarımı ve yenilemesinde düşmeye karşı kenar koruma ile birlikte kurulan iskele.",
+         kimin="Çatı aktarma, kiremit ve membran yenileme, oluk ve baca işleri",
+         teknik=[
+             "Saçak hizasında kenar koruma korkuluğu iskelenin ayrılmaz parçasıdır.",
+             "Malzeme çatıya iskeleden çıkacaksa taşıma yolu ve platform genişliği ona göre planlanır.",
+             "Eğimli çatıda çalışma platformu saçak kotunun üstüne taşırılır.",
+         ],
+         sinir="Sadece çatıya erişim için tüm cepheyi kurmak gerekmeyebilir; keşifte kapsam daraltılır."),
+    dict(slug="sahne-podyum-iskelesi", ad="Sahne ve Etkinlik İskelesi",
+         h1="Sahne, Podyum ve Etkinlik İskelesi Kiralama",
+         ozet="Konser, açılış, fuar ve organizasyonlar için kurulan geçici sahne, tribün ve "
+               "ışık-ses kulesi taşıyıcıları.",
+         kimin="Organizasyon firmaları, belediye etkinlikleri, fuar ve açılışlar",
+         teknik=[
+             "Kurulum ve söküm tarihleri etkinlik programına göre saat bazında planlanır.",
+             "Ses-ışık ekipmanı asılacaksa yük noktaları önceden bilinmelidir.",
+             "Açık alanda rüzgâr, balast ve ankraj planını doğrudan belirler.",
+         ],
+         sinir="Etkinlik iskelesi cephe iskelesiyle aynı hesap değildir; yük ve süre baştan netleşmeli."),
+    dict(slug="asma-iskele", ad="Asma İskele (Askılı Platform)",
+         h1="Asma İskele ve Cephe Asansörü Kiralama",
+         ozet="Yüksek bloklarda cepheyi baştan aşağı iskeleyle kaplamak yerine, çatıdan askıya "
+               "alınan hareketli platformla çalışma.",
+         kimin="Rezidans, plaza ve yüksek katlı bloklarda cephe temizliği, boya ve cam işleri",
+         teknik=[
+             "Platform çatıdaki konsollardan askıya alınır; çatı yükü ve dengeleme hesabı şarttır.",
+             "Belirli bir kat sayısının üstünde cephe iskelesinden hem hızlı hem ekonomiktir.",
+             "Çalışan kişisel düşüş durdurma sistemine ayrı bir hattan bağlanır.",
+         ],
+         sinir="Cephede geniş çıkma, balkon dizisi ya da engel varsa platform her noktaya inemez."),
+]
+
+# ── 5 rehber sayfası ─────────────────────────────────────────────────────────
+REHBERLER = [
+    dict(slug="iskele-kiralama-fiyatlari", ad="İskele Kiralama Fiyatları",
+         h1="İskele Kiralama Fiyatları Nasıl Hesaplanır?",
+         ozet="Cephe metrekaresi, kira süresi, kurulum-söküm ve nakliye — dört kalemin nasıl "
+               "birleştiğini ve neyin fiyatı değiştirdiğini anlatan rehber."),
+    dict(slug="iskele-is-guvenligi", ad="İskelede İş Güvenliği",
+         h1="İskelede İş Güvenliği ve Mevzuat",
+         ozet="Yapı İşlerinde İş Sağlığı ve Güvenliği Yönetmeliği'nin iskeleye bakan hükümleri, "
+               "korkuluk ve platform kuralları, iskele etiketi."),
+    dict(slug="iskele-kurulum-sokum-sureci", ad="Kurulum ve Söküm Süreci",
+         h1="İskele Kurulum ve Söküm Süreci Adım Adım",
+         ozet="Keşiften sökümüne kadar sürecin tamamı: ölçü alma, zemin hazırlığı, kat kat "
+               "kurulum, teslim kontrolü, kullanım kuralları ve iş bitiminde söküm."),
+    dict(slug="iskele-kiralama-mi-satin-alma-mi", ad="Kiralama mı, Satın Alma mı?",
+         h1="İskele Kiralamak mı, Satın Almak mı Daha Mantıklı?",
+         ozet="Tek seferlik iş ile sürekli şantiye arasındaki farkı, depolama ve bakım "
+               "yükünü, hangi eşikte satın almanın anlam kazandığını karşılaştıran rehber."),
+    dict(slug="iskele-cesitleri", ad="İskele Çeşitleri",
+         h1="İskele Çeşitleri ve Hangi İş İçin Hangisi?",
+         ozet="Cephe, sistem, kule, mantolama, çatı ve askılı platform sistemlerini yan yana "
+               "koyan karşılaştırma; iş tipine göre seçim tablosu."),
+]
+
+# ── Google İşletme Profili konumu (kullanıcı 2026-09-01'de embed kodunu verdi) ──
+# ⚠️ Harita TIKLANANA KADAR yüklenmiyor: gömülü iframe ~900 KB JS çekiyor ve
+#    seyrannakliyat'ta mobilde boş kutuya dönüştüğü için kaldırılmıştı. Burada
+#    facade deseniyle duruyor — istek ancak kullanıcı isterse gidiyor.
+HARITA_EMBED = ("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3005.05423416504"
+                "!2d28.8310131759549!3d41.133342011714866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768"
+                "!4f13.1!3m3!1m2!1s0x14caaf1fd3f1c865%3A0x9d56e54b6d26a68e"
+                "!2sDeha%20%C4%B0skele!5e0!3m2!1str!2str!4v1788240332230!5m2!1str!2str")
+HARITA_LINK = "https://www.google.com/maps/place/?q=place_id:ChIJZcjx0x-vyhQRjqYmbUvlVp0"
+GEO = {"lat": 41.133342, "lon": 28.831013}
+
+
+# ── İlçe H2 planı (kullanıcı 2026-09-01'de verdi) ────────────────────────────
+# ⚠️ Kullanıcının verdiği başlıklardan TEYİT EDİLMEMİŞ hizmet iddiası içerenler
+#    ayıklandı: "sigortalı", "güvenlik sertifikalı", "premium alüminyum",
+#    "toptan/kurumsal anlaşma", "indirimli/kampanyalı", "kullanılmış vs sıfır".
+#    Bu iddialar onaylanınca geri eklenebilir (bkz ONAYLI_IDDIALAR).
+ILCE_H2 = {
+    'adalar': [
+        "Adalar'da tarihi yapılar için özel iskele",
+        'Ada şartlarına uygun hafif iskele sistemleri',
+        'Adalar kiralık iskele fiyatları',
+        'Deniz taşımacılığı ile iskele teslimatı',
+        "Adalar'da restorasyon iskeleleri",
+        'Güvenlik odaklı sistemler',
+        "Adalar'da kısa süreli kiralama",
+        'Çevreye uyumlu iskele çözümleri',
+    ],
+    'arnavutkoy': [
+        "Arnavutköy'de havalimanı ve yeni yerleşim bölgelerinde iskele",
+        'Geniş alanlı şantiyeler için endüstriyel iskele sistemleri',
+        'Arnavutköy kiralık iskele fiyatları',
+        'Rüzgâra ve açık arazi şartlarına dayanıklı iskele',
+        "Arnavutköy'de uzun mesafeli iskele teslimatı",
+        'Güvenlik standartlarına uygun iskele seçimi',
+        "Arnavutköy'de uzun dönem kiralama",
+        'Montaj ekibiyle birlikte kurulum',
+    ],
+    'atasehir': [
+        "Ataşehir'de modern konut projelerinde iskele",
+        'Yüksek katlı binalarda cephe iskelesi',
+        'Ataşehir kiralık iskele fiyatları',
+        'Modüler ve mobil iskele avantajları',
+        "Ataşehir'de site yönetimi izin süreci",
+        'Standartlara uygun iskele sistemleri',
+        "Ataşehir'de uzun dönem kiralama",
+        'İç mekân iskele çözümleri',
+    ],
+    'avcilar': [
+        'Avcılar sahil şeridinde deniz etkisine dayanıklı iskele',
+        'Hangi iskele türü konut yenileme işlerine uygundur?',
+        "Avcılar'da iskele kiralama sözleşmesinde dikkat edilecek maddeler",
+        'Mobil iskele ile dar alanlarda çalışma kolaylığı',
+        'Avcılar kiralık iskele fiyatlarını ne belirliyor?',
+        'İskele söküm ve iade prosedürü',
+        'Yüksek güvenlikli iskele sistemleri',
+    ],
+    'bagcilar': [
+        "Bağcılar'da yoğun inşaat bölgelerine iskele teslimatı",
+        'Endüstriyel iskele sistemleri ve taşıma kapasiteleri',
+        'Bağcılar iskele kiralama maliyet hesaplama',
+        'Güvenlik ağlı iskele çözümleri',
+        'Çok katlı yapılarda iskele planlama',
+        "Bağcılar'da iskele kiralama sonrası teknik destek",
+        'Hafif iskele ile iç mekân tadilatları',
+        'Kiralık iskelede yasal zorunluluklar',
+    ],
+    'bahcelievler': [
+        "Bahçelievler'de apartman cephe iskelesi kiralama",
+        'Kısa vadeli iskele kiralama avantajları',
+        'Bahçelievler kiralık iskele fiyat aralıkları',
+        'Katlanır iskele sistemlerinin kullanım alanları',
+        'İskele kiralarken kalite belgesi kontrolü',
+        'Dış cephe boyama için ideal iskele tipleri',
+        'Kiralık iskelede hasar ve sorumluluk şartları',
+    ],
+    'bakirkoy': [
+        "Bakırköy'de tarihi binalarda özel iskele çözümleri",
+        'Lüks konut projelerinde iskele sistemleri',
+        'Bakırköy iskele kiralama fiyat karşılaştırması',
+        'Güvenlik standartlarına uygun iskele seçimi',
+        "Bakırköy'de hızlı kurulumlu mobil iskele",
+        'Dış cephe restorasyon iskeleleri',
+        'Kiralık iskelede bakım ve kontrol süreci',
+        "Bakırköy'de kurumsal firmalar için iskele anlaşmaları",
+    ],
+    'basaksehir': [
+        'Başakşehir yeni konut projelerinde iskele ihtiyacı',
+        'Geniş alanlı şantiyeler için endüstriyel iskele',
+        'Başakşehir kiralık iskele fiyatları nasıl çıkar?',
+        'Yüksek kapasiteli iskele sistemleri',
+        "Başakşehir'de iskele montaj süresi ne kadar?",
+        'Modüler iskele ile esnek kullanım',
+        "Başakşehir'de uzun dönem iskele kiralama",
+    ],
+    'bayrampasa': [
+        "Bayrampaşa'da sanayi bölgelerine özel iskele",
+        'Ağır yük taşıyan iskele sistemleri',
+        'Bayrampaşa iskele kiralama ücretleri',
+        'Dar sokaklarda mobil iskele kullanımı',
+        "Bayrampaşa'da iskele güvenlik kontrolleri",
+        'Kısa süreli tadilat iskeleleri',
+        'Kiralık iskelede yedek parça desteği',
+        "Bayrampaşa'da ekonomik iskele alternatifleri",
+    ],
+    'besiktas': [
+        "Beşiktaş'ta villa ve yalı iskele çözümleri",
+        'Estetik ve güvenli cephe iskeleleri',
+        'Beşiktaş kiralık iskele fiyat rehberi',
+        'Tarihi yapılarda özel iskele uygulamaları',
+        "Beşiktaş'ta yokuş sokaklarda montaj",
+        'Yüksek güvenlikli iskele sistemleri',
+        "Beşiktaş'ta kısa dönem iskele kiralama",
+    ],
+    'beykoz': [
+        "Beykoz'da boğaz ve ormanlık alan projelerinde iskele",
+        'Eğimli arazilerde özel sistemler',
+        'Beykoz kiralık iskele fiyatları',
+        'Doğaya uyumlu iskele çözümleri',
+        "Beykoz'da iskele montaj süreci",
+        'Güvenlik odaklı sistemler',
+        "Beykoz'da kısa süreli kiralama",
+        'Dış etkilere dayanıklı modeller',
+    ],
+    'beylikduzu': [
+        "Beylikdüzü'nde yeni yerleşim alanları iskele ihtiyacı",
+        'Toplu konut projelerinde iskele kiralama',
+        'Beylikdüzü iskele fiyatları nasıl hesaplanır?',
+        'Hızlı kurulumlu modüler iskele',
+        "Beylikdüzü'nde iskele teslimat bölgeleri",
+        'Güvenlik ağlı ve korkuluklu iskeleler',
+        "Beylikdüzü'nde aylık iskele kiralama",
+        'İç mekân iskele sistemleri',
+    ],
+    'beyoglu': [
+        "Beyoğlu'nda tarihi binalar için özel iskele",
+        'Dar sokaklarda mobil iskele kullanımı',
+        'Beyoğlu kiralık iskele fiyatları',
+        'Restorasyon işleri için hafif iskele',
+        "Beyoğlu'nda çalışma saati ve izin süreci",
+        'Güvenlik odaklı iskele sistemleri',
+        "Beyoğlu'nda kısa süreli iskele kiralama",
+        'Cephe temizliği ve boyama iskeleleri',
+    ],
+    'buyukcekmece': [
+        "Büyükçekmece'de sahil ve villa projelerinde iskele",
+        'Geniş arazi şantiyeleri için endüstriyel iskele',
+        'Büyükçekmece iskele kiralama ücretleri',
+        'Rüzgâra dayanıklı iskele sistemleri',
+        "Büyükçekmece'de iskele montaj ve söküm",
+        'Uzun dönem kiralamada süre planlaması',
+        "Büyükçekmece'de güvenli iskele seçimi",
+        'Modüler ve mobil iskele kombinasyonları',
+    ],
+    'catalca': [
+        "Çatalca'da kırsal ve tarımsal yapılar için iskele",
+        'Geniş alanlı projelerde iskele kiralama',
+        'Çatalca iskele fiyatları ve teslimat',
+        'Dayanıklı çelik iskele sistemleri',
+        "Çatalca'da uzun mesafeli iskele nakliyesi",
+        'Güvenlik standartlarına uygun iskele',
+        "Çatalca'da ekonomik iskele alternatifleri",
+        'Montaj ekibiyle birlikte kurulum',
+    ],
+    'cekmekoy': [
+        "Çekmeköy'de yeni yerleşim alanlarında iskele",
+        'Konut ve villa projeleri için sistemler',
+        'Çekmeköy iskele fiyatları',
+        'Modüler iskele esnekliği',
+        "Çekmeköy'de teslimat ve zemin hazırlığı",
+        'Güvenlik standartlı iskeleler',
+        "Çekmeköy'de uzun dönem kiralama",
+        'İç-dış iskele kombinasyonları',
+    ],
+    'esenler': [
+        "Esenler'de yoğun yerleşim alanlarında iskele",
+        'Apartman tadilat iskeleleri',
+        'Esenler kiralık iskele fiyat aralığı',
+        'Hızlı montajlı mobil iskele',
+        "Esenler'de iskele güvenlik önlemleri",
+        'Kısa vadeli kiralama seçenekleri',
+        "Esenler'de ekonomik iskele modelleri",
+        'İç ve dış cephe iskeleleri',
+    ],
+    'esenyurt': [
+        "Esenyurt'ta güvenilir iskele firması nasıl seçilir?",
+        'Modüler iskele ile hızlı montaj avantajları',
+        'Esenyurt inşaat sahalarında en çok tercih edilen iskele tipleri',
+        'İskele kiralarken sigorta ve güvenlik şartları',
+        'Cephe iskelesi ile yüksek katlı binalarda çalışma',
+        "Esenyurt'ta iskele teslimat ve kurulum süreci",
+        'Kiralık iskele fiyatlarını etkileyen faktörler',
+    ],
+    'eyupsultan': [
+        "Eyüpsultan'da tarihi ve yeni yapılar için iskele",
+        'Yüksek katlı binalarda cephe iskelesi',
+        'Eyüpsultan iskele kiralama fiyatları',
+        'Standartlara uygun iskele sistemleri',
+        "Eyüpsultan'da iskele montaj süresi",
+        'Modüler iskele esnekliği',
+        "Eyüpsultan'da uzun dönem kiralama",
+        'Hafif iskele sistemlerinin avantajları',
+    ],
+    'fatih': [
+        "Fatih'te tarihi yarımada restorasyon iskeleleri",
+        'Dar sokaklara uygun mobil iskele',
+        'Fatih kiralık iskele fiyat rehberi',
+        'Hassas yapılarda özel iskele çözümleri',
+        "Fatih'te koruma kurulu izin süreci",
+        'Güvenlik odaklı iskele sistemleri',
+        "Fatih'te kısa süreli iskele kiralama",
+        'Cephe temizliği iskeleleri',
+    ],
+    'gaziosmanpasa': [
+        "Gaziosmanpaşa'da konut ve ticari yapı iskeleleri",
+        'Yoğun inşaat bölgelerinde teslimat',
+        'Gaziosmanpaşa iskele fiyatları',
+        'Yüksek kapasiteli iskele sistemleri',
+        "Gaziosmanpaşa'da iskele güvenlik kontrolleri",
+        'Bitişik nizam binalarda iskele çözümleri',
+        "Gaziosmanpaşa'da montaj ekibi hizmeti",
+        'İç mekân iskele çözümleri',
+    ],
+    'gungoren': [
+        "Güngören'de dar alanlarda mobil iskele",
+        'Apartman cephe iskelesi kiralama',
+        'Güngören iskele fiyatları',
+        'Hızlı kurulumlu sistemler',
+        "Güngören'de güvenlik standartları",
+        'Kısa dönem iskele kiralama',
+        "Güngören'de iş yerlerine özel çalışma saati",
+        'Dış cephe boyama iskeleleri',
+    ],
+    'kadikoy': [
+        "Kadıköy'de sahil ve merkezi bölgelerde iskele",
+        'Tarihi ve modern yapılarda özel çözümler',
+        'Kadıköy kiralık iskele fiyatları',
+        'Mobil iskele ile dar alan kullanımı',
+        "Kadıköy'de yaya trafiği ve koruyucu tünel",
+        'Güvenlik ve estetik odaklı sistemler',
+        "Kadıköy'de kısa süreli kiralama",
+        'Cephe yenileme iskeleleri',
+    ],
+    'kagithane': [
+        "Kağıthane'de yeni projeler ve tadilat iskeleleri",
+        'Endüstriyel ve konut iskele sistemleri',
+        'Kağıthane kiralık iskele fiyatları',
+        'Modüler iskele avantajları',
+        "Kağıthane'de iskele montaj süreci",
+        'Güvenlik ağlı iskeleler',
+        "Kağıthane'de uzun dönem kiralama",
+        'Hafif ve dayanıklı iskele modelleri',
+    ],
+    'kartal': [
+        "Kartal'da yeni konut ve ticari projelerde iskele",
+        'Yüksek kapasiteli sistemler',
+        'Kartal kiralık iskele fiyat aralığı',
+        'Modüler iskele avantajları',
+        "Kartal'da dönüşüm şantiyelerinde uzun kiralama",
+        'Standartlara uygun iskeleler',
+        "Kartal'da montaj süreci",
+        'İç mekân çözümleri',
+    ],
+    'kucukcekmece': [
+        "Küçükçekmece'de yoğun nüfuslu bölgelerde iskele",
+        'Konut yenileme iskele çözümleri',
+        'Küçükçekmece iskele fiyat aralıkları',
+        'Mobil ve modüler iskele seçenekleri',
+        "Küçükçekmece'de zemin ve güvenlik önlemleri",
+        'Kısa ve uzun dönem kiralama',
+        "Küçükçekmece'de teslimat süreci",
+        'Cephe iskele sistemleri',
+    ],
+    'maltepe': [
+        "Maltepe'de sahil şeridi ve konut iskeleleri",
+        'Deniz etkisine dayanıklı sistemler',
+        'Maltepe kiralık iskele fiyatları',
+        'Mobil ve modüler seçenekler',
+        "Maltepe'de iskele montaj süreci",
+        'Güvenlik ağlı iskeleler',
+        "Maltepe'de kısa ve uzun dönem kiralama",
+        'Cephe iskele çözümleri',
+    ],
+    'pendik': [
+        "Pendik'te sanayi ve liman bölgelerinde iskele",
+        'Endüstriyel iskele sistemleri',
+        'Pendik kiralık iskele fiyatları',
+        'Yüksek kapasiteli ve dayanıklı modeller',
+        "Pendik'te teslimat süreci",
+        'Standartlara uygun iskeleler',
+        "Pendik'te uzun dönem kiralama",
+        'Modüler iskele avantajları',
+    ],
+    'sancaktepe': [
+        "Sancaktepe'de yeni gelişen bölgelerde iskele",
+        'Konut projelerinde iskele kiralama',
+        'Sancaktepe iskele fiyatları',
+        'Modüler ve mobil sistemler',
+        "Sancaktepe'de montaj süresi",
+        'Güvenlik odaklı iskeleler',
+        "Sancaktepe'de ekonomik seçenekler",
+        'İç-dış iskele kombinasyonları',
+    ],
+    'sariyer': [
+        "Sarıyer'de boğaz manzaralı villalar için iskele",
+        'Eğimli arazilerde özel iskele sistemleri',
+        'Sarıyer kiralık iskele fiyatları',
+        'Dış etkilere dayanıklı iskele modelleri',
+        "Sarıyer'de iskele montaj ve güvenlik",
+        'Villa projelerinde iskele çözümleri',
+        "Sarıyer'de kısa süreli kiralama",
+        'Doğal çevreye uyumlu iskele çözümleri',
+    ],
+    'sile': [
+        "Şile'de sahil ve kırsal projelerde iskele",
+        'Doğal çevreye uyumlu sistemler',
+        'Şile kiralık iskele fiyatları',
+        'Rüzgâr ve deniz etkisine dayanıklı iskele',
+        "Şile'de uzun mesafeli teslimat",
+        'Güvenlik standartlı sistemler',
+        "Şile'de ekonomik kiralama",
+        'Montaj ekibiyle birlikte kurulum',
+    ],
+    'silivri': [
+        "Silivri'de sahil ve kırsal projelerde iskele",
+        'Geniş alanlı şantiyeler için endüstriyel iskele',
+        'Silivri iskele kiralama ücretleri',
+        'Rüzgâr ve deniz etkisine dayanıklı sistemler',
+        "Silivri'de uzun mesafeli teslimat",
+        'Güvenlik standartlı iskeleler',
+        "Silivri'de ekonomik kiralama seçenekleri",
+        'Montaj ekibiyle birlikte kurulum',
+    ],
+    'sisli': [
+        "Şişli'de ofis ve ticari bina iskeleleri",
+        'Yoğun şehir merkezinde mobil iskele',
+        'Şişli kiralık iskele fiyat rehberi',
+        'Güvenlik ve estetik odaklı sistemler',
+        "Şişli'de kaldırım ve izin süreci",
+        'Kısa süreli iskele kiralama',
+        "Şişli'de profesyonel kurulum",
+        'Cephe yenileme iskeleleri',
+    ],
+    'sultanbeyli': [
+        "Sultanbeyli'de konut ve tadilat iskeleleri",
+        'Yoğun yerleşim alanlarında mobil iskele',
+        'Sultanbeyli kiralık iskele fiyatları',
+        'Hızlı kurulumlu sistemler',
+        "Sultanbeyli'de güvenlik kontrolleri",
+        'Uzun süreli şantiyelerde kiralama',
+        "Sultanbeyli'de ekonomik alternatifler",
+        'Cephe iskele çözümleri',
+    ],
+    'sultangazi': [
+        "Sultangazi'de konut ve ticari iskele ihtiyaçları",
+        'Yoğun inşaat alanlarında iskele',
+        'Sultangazi kiralık iskele fiyatları',
+        'Yüksek kapasiteli sistemler',
+        "Sultangazi'de güvenlik kontrolleri",
+        'Ekonomik ve kaliteli alternatifler',
+        "Sultangazi'de montaj hizmeti",
+        'İç-dış iskele kombinasyonları',
+    ],
+    'tuzla': [
+        "Tuzla'da sanayi ve liman bölgelerinde iskele",
+        'Endüstriyel iskele sistemleri',
+        'Tuzla kiralık iskele fiyatları',
+        'Yüksek kapasiteli ve dayanıklı modeller',
+        "Tuzla'da iş güvenliği denetimi ve kayıt",
+        'Standartlara uygun iskeleler',
+        "Tuzla'da uzun dönem kiralama",
+        'Modüler iskele avantajları',
+    ],
+    'umraniye': [
+        "Ümraniye'de yoğun inşaat bölgelerinde iskele",
+        'Konut ve ticari yapı iskeleleri',
+        'Ümraniye kiralık iskele fiyatları',
+        'Modüler ve mobil sistemler',
+        "Ümraniye'de site yönetimi ve çalışma saati",
+        'Güvenlik ağlı iskeleler',
+        "Ümraniye'de uzun dönem kiralama",
+        'İç mekân iskele çözümleri',
+    ],
+    'uskudar': [
+        "Üsküdar'da tarihi ve modern yapılar için iskele",
+        'Boğaz kenarı projelerde özel sistemler',
+        'Üsküdar kiralık iskele fiyatları',
+        'Mobil iskele ile dar alan kullanımı',
+        "Üsküdar'da eğimli sokaklarda montaj",
+        'Güvenlik ve estetik odaklı iskeleler',
+        "Üsküdar'da kısa süreli kiralama",
+        'Cephe restorasyon iskeleleri',
+    ],
+    'zeytinburnu': [
+        "Zeytinburnu'nda konut ve sanayi iskeleleri",
+        'Dar alanlarda mobil iskele kullanımı',
+        'Zeytinburnu iskele fiyatları',
+        'Hızlı kurulumlu sistemler',
+        "Zeytinburnu'nda güvenlik standartları",
+        'Kısa ve uzun dönem kiralama',
+        "Zeytinburnu'nda iskele teslimatı",
+        'Cephe iskele çözümleri',
+    ],
+}
+
+
+# ── Türkçe ek tablosu ────────────────────────────────────────────────────────
+# ⚠️ Otomatik ünlü uyumu YETMİYOR: Beylikdüzü/Beyoğlu/Zeytinburnu iyelik eki almış
+#    isimler (-nda/-nde), Beşiktaş/Esenyurt/Fatih/Pendik sert ünsüzle bitiyor (-ta/-te).
+#    Bu yüzden 39 ilçenin ekleri tek tek yazıldı. ⛔ Kod içinde "{ad}'da" YAZMA, ek() kullan.
+#    (loc = -de hâli, dat = -e hâli, gen = -in hâli, abl = -den hâli)
+ILCE_EK = {
+ "adalar":       ("'da", "'a",   "'ın",   "'dan"),
+ "arnavutkoy":   ("'de", "'e",   "'ün",   "'den"),
+ "atasehir":     ("'de", "'e",   "'in",   "'den"),
+ "avcilar":      ("'da", "'a",   "'ın",   "'dan"),
+ "bagcilar":     ("'da", "'a",   "'ın",   "'dan"),
+ "bahcelievler": ("'de", "'e",   "'in",   "'den"),
+ "bakirkoy":     ("'de", "'e",   "'ün",   "'den"),
+ "basaksehir":   ("'de", "'e",   "'in",   "'den"),
+ "bayrampasa":   ("'da", "'ya",  "'nın",  "'dan"),
+ "besiktas":     ("'ta", "'a",   "'ın",   "'tan"),
+ "beykoz":       ("'da", "'a",   "'un",   "'dan"),
+ "beylikduzu":   ("'nde","'ne",  "'nün",  "'nden"),
+ "beyoglu":      ("'nda","'na",  "'nun",  "'ndan"),
+ "buyukcekmece": ("'de", "'ye",  "'nin",  "'den"),
+ "catalca":      ("'da", "'ya",  "'nın",  "'dan"),
+ "cekmekoy":     ("'de", "'e",   "'ün",   "'den"),
+ "esenler":      ("'de", "'e",   "'in",   "'den"),
+ "esenyurt":     ("'ta", "'a",   "'un",   "'tan"),
+ "eyupsultan":   ("'da", "'a",   "'ın",   "'dan"),
+ "fatih":        ("'te", "'e",   "'in",   "'ten"),
+ "gaziosmanpasa":("'da", "'ya",  "'nın",  "'dan"),
+ "gungoren":     ("'de", "'e",   "'in",   "'den"),
+ "kadikoy":      ("'de", "'e",   "'ün",   "'den"),
+ "kagithane":    ("'de", "'ye",  "'nin",  "'den"),
+ "kartal":       ("'da", "'a",   "'ın",   "'dan"),
+ "kucukcekmece": ("'de", "'ye",  "'nin",  "'den"),
+ "maltepe":      ("'de", "'ye",  "'nin",  "'den"),
+ "pendik":       ("'te", "'e",   "'in",   "'ten"),
+ "sancaktepe":   ("'de", "'ye",  "'nin",  "'den"),
+ "sariyer":      ("'de", "'e",   "'in",   "'den"),
+ "silivri":      ("'de", "'ye",  "'nin",  "'den"),
+ "sultanbeyli":  ("'de", "'ye",  "'nin",  "'den"),
+ "sultangazi":   ("'de", "'ye",  "'nin",  "'den"),
+ "sile":         ("'de", "'ye",  "'nin",  "'den"),
+ "sisli":        ("'de", "'ye",  "'nin",  "'den"),
+ "tuzla":        ("'da", "'ya",  "'nın",  "'dan"),
+ "umraniye":     ("'de", "'ye",  "'nin",  "'den"),
+ "uskudar":      ("'da", "'a",   "'ın",   "'dan"),
+ "zeytinburnu":  ("'nda","'na",  "'nun",  "'ndan"),
+}
+
+# ── Kullanıcının 2026-09-01'de verdiği tür listesinden eklenenler ─────────────
+# ⚠️ Mevcut 8 türün slug'ları KORUNDU (site canlı, URL kırılmasın).
+TURLER += [
+    dict(slug="h-tipi-iskele", ad="H Tipi İskele",
+         h1="H Tipi İskele Kiralama",
+         ozet="Çerçeve sistemli, üst üste geçmeli en yaygın cephe iskelesi. Hızlı kurulur, "
+               "hızlı sökülür.",
+         kimin="Apartman ve site cepheleri, boya-sıva-mantolama işleri, düşük ve orta katlı yapılar",
+         teknik=[
+             "İki dikme ile yatay bağlantının kaynaklı olduğu H şeklindeki çerçeveler üst üste geçirilir.",
+             "Parça sayısı az ve standart olduğu için kurulum hızı yüksektir.",
+             "Cepheye bağlantı ve çapraz elemanlar olmadan çerçeve tek başına yeterli değildir.",
+         ],
+         sinir="Düzensiz cephede, çıkmalı geometride ve ağır yükte zorlanır; orada flanşlı, "
+               "kamalı veya Cuplock sisteme geçilir."),
+    dict(slug="flansli-iskele", ad="Flanşlı İskele",
+         h1="Flanşlı İskele Kiralama",
+         ozet="Dikmelere kaynaklı flanş (rozet) disklerine yatay ve çapraz elemanların "
+               "bağlandığı modüler sistem.",
+         kimin="Düzensiz cepheler, endüstriyel tesisler, çıkma ve kademe içeren yapılar",
+         teknik=[
+             "Flanş üzerindeki delikler sayesinde tek noktadan birden çok yöne bağlantı yapılabilir.",
+             "Açı serbestliği yüksek olduğu için dairesel ve kırık hatlı cephelere uyar.",
+             "Bağlantılar kama ile sıkıştırılır; montaj sırasında her kama tam oturmalıdır.",
+         ],
+         sinir="Malzeme ve işçilik maliyeti H tipi çerçeve iskeleden yüksektir; düz ve alçak "
+               "cephede gereksiz masraf olur."),
+    dict(slug="kamali-iskele", ad="Kamalı İskele",
+         h1="Kamalı İskele Kiralama",
+         ozet="Kama bağlantılarıyla çekiç darbesiyle kilitlenen, hızlı kurulup sökülen "
+               "modüler iskele sistemi.",
+         kimin="Süre baskısı olan şantiyeler, tekrarlı kurulum-söküm gerektiren işler",
+         teknik=[
+             "Bağlantı kaması çekiçle vurularak sıkıştırılır; ayrı cıvata ve somun gerekmez.",
+             "Kurulum-söküm hızı yüksek olduğu için kısa süreli işlerde işçilik kalemini düşürür.",
+             "Kamaların tam oturduğu montaj sırasında tek tek kontrol edilir.",
+         ],
+         sinir="Kama yuvaları hasarlıysa bağlantı güvenliği düşer; yıpranmış malzemeyle "
+               "kurulmamalıdır."),
+    dict(slug="cuplock-iskele", ad="Cuplock İskele",
+         h1="Cuplock İskele Kiralama",
+         ozet="Dikmedeki alt ve üst çanak (kupa) sistemiyle dört yatay elemanın tek noktada "
+               "kilitlendiği modüler sistem.",
+         kimin="Betonarme kalıp desteği, yüksek yük taşıyan kurulumlar, endüstriyel yapılar",
+         teknik=[
+             "Yatay elemanların uçları alt kupaya oturur, üst kupa çevrilerek dördü birden kilitlenir.",
+             "Tek düğümde dört yönlü bağlantı sağladığı için ızgara kurulumlarda hızlıdır.",
+             "Yük aktarımı doğrudan dikme ekseninden olduğu için taşıma kapasitesi yüksektir.",
+         ],
+         sinir="Serbest açılı geometride flanşlı sistem kadar esnek değildir; kupalar 90 derecelik "
+               "düzene bağlıdır."),
+    dict(slug="masa-iskele", ad="Masa İskele",
+         h1="Masa İskele (Masa Kalıp) Kiralama",
+         ozet="Döşeme betonu için kalıp ve taşıyıcının birlikte kurulduğu, kat kat taşınabilen "
+               "hazır masa üniteleri.",
+         kimin="Geniş döşemeli betonarme projeler, çok katlı yapıların kaba inşaatı",
+         teknik=[
+             "Kalıp ve altındaki taşıyıcı tek ünite olarak kurulur; beton priz aldıktan sonra bütün hâlde alınır.",
+             "Aynı kat planı tekrar ediyorsa üst katlara taşınarak kullanılır, bu da süreyi ciddi kısaltır.",
+             "Taşıma ve konumlandırma vinç gerektirir; şantiyede vinç programı buna göre yapılır.",
+         ],
+         sinir="Kat planı her katta değişen projelerde avantajını kaybeder; küçük döşemelerde "
+               "kurulum maliyeti karşılamaz."),
+    dict(slug="kalip-alti-iskelesi", ad="Kalıp Altı İskelesi",
+         h1="Kalıp Altı İskelesi ve Teleskopik Dikme Kiralama",
+         ozet="Betonarme döşeme ve kirişlerin kalıbını, beton priz alana kadar taşıyan destek "
+               "sistemi.",
+         kimin="Kaba inşaat, döşeme ve kiriş betonu, kat betonu dökümü",
+         teknik=[
+             "Taşıyacağı yük taze beton, kalıp ve işçi yükünün toplamıdır; kapasite buna göre seçilir.",
+             "Teleskopik dikmeler iç içe geçen iki borudan oluşur, vida ayarıyla kat yüksekliğine getirilir.",
+             "Destekler beton yeterli dayanımı alana kadar sökülmez; erken söküm en tehlikeli hatalardan biridir.",
+         ],
+         sinir="Cephe işi için uygun değildir; bu sistem yatay yükü değil düşey kalıp yükünü taşır."),
+    dict(slug="mobil-iskele", ad="Mobil İskele",
+         h1="Mobil İskele Kiralama",
+         ozet="Tekerlekli yapısı sayesinde çalışma noktaları arasında itilerek taşınabilen "
+               "hafif iskele.",
+         kimin="İç mekân tadilatı, tavan ve aydınlatma işleri, tabela montajı, depo ve mağaza bakımı",
+         teknik=[
+             "Tekerlekler frenlenmeden ve ayarlı ayaklar oturtulmadan platforma çıkılmaz.",
+             "Yükseklik arttıkça devrilme riski büyür; gerekli olduğunda denge ayakları takılır.",
+             "Üzerinde insan ya da malzeme varken iskele ASLA hareket ettirilmez.",
+         ],
+         sinir="Bina cephesinin tamamı için uygun değildir; sürekli yer değiştirmek zaman kaybı olur."),
+    dict(slug="merdivenli-iskele", ad="Merdivenli İskele",
+         h1="Merdivenli İskele Kiralama",
+         ozet="Katlar arasında güvenli geçiş için merdiven kulesi bulunan iskele düzeni.",
+         kimin="Yüksek iskeleler, uzun süreli şantiyeler, çok kişinin çalıştığı cepheler",
+         teknik=[
+             "Merdiven kulesi iskeleye entegre kurulur; çalışanlar dikmeye tırmanmak zorunda kalmaz.",
+             "Malzemenin de merdivenden taşınacağı düşünülerek genişlik ve sahanlık planlanır.",
+             "Merdiven boşlukları korkuluk ve kapaklarla kapatılır.",
+         ],
+         sinir="Ek malzeme ve alan gerektirir; tek katlı, kısa süreli işlerde gereksiz kalır."),
+    dict(slug="konsol-iskele", ad="Konsol İskele",
+         h1="Konsol İskele Kiralama",
+         ozet="Zemine basmadan, yapıdan dışarı uzatılan konsollar üzerine kurulan iskele.",
+         kimin="Bitişik nizam binalar, sokağın kapatılamadığı cepheler, üst katlarda kısmi çalışma",
+         teknik=[
+             "Konsol kirişleri yapı içinden ankrajlanır; taşıma hesabı kurulum öncesi yapılır.",
+             "Zemin kullanılmadığı için yaya ve araç geçişi açık kalır.",
+             "Yapıya aktarılan yük noktasal olduğundan bağlantı noktalarının uygunluğu şarttır.",
+         ],
+         sinir="Her yapıya kurulamaz; ankraj yapılacak taşıyıcı eleman ve iç mekân erişimi gerekir."),
+    dict(slug="endustriyel-iskele", ad="Endüstriyel İskele",
+         h1="Endüstriyel İskele Kiralama",
+         ozet="Fabrika, enerji tesisi, rafineri ve büyük tesislerde kullanılan ağır hizmet "
+               "iskele sistemleri.",
+         kimin="Sanayi tesisleri, tersaneler, enerji santralleri, bakım-duruş çalışmaları",
+         teknik=[
+             "Geometri çoğu zaman düzensizdir; boru, tank ve makine etrafına özel kurulum gerekir.",
+             "Taşıma sınıfı, bağlantı planı ve kurulum sırası yazılı olarak belirlenir.",
+             "Tesis kendi iş güvenliği prosedürünü uygular; çalışma izni ve denetim süreci işin parçasıdır.",
+         ],
+         sinir="Konut cephesi için gereğinden ağır ve pahalı bir çözümdür."),
+]
+
+
+# ── Görseller (kullanıcı 2026-09-01'de yükledi) ──────────────────────────────
+# ⚠️ Sayfalara HEP türev giriyor (images/w500|w900|w1600). Kaynaklar images/ kökünde
+#    duruyor, silinmez. Türev üretimi: python3 _src/media.py
+# ⚠️ Görseller KIRPILMIYOR (object-fit:cover yok) — kullanıcı "tam boy" istedi ve
+#    poster tarzı görsellerde kırpma üstteki/alttaki yazıyı kesiyor.
+# ⚠️ Görselin tamamı tel: bağlantısı — kullanıcı "tıklanınca aranabilir olsun" dedi.
+HERO_GORSEL = "deha-iskele-hero"
+
+# Tür sayfası → kendi görseli
+TUR_GORSEL = {
+    "cephe-iskelesi":        "istanbul-dis-cephe-iskelesi-kira",
+    "h-tipi-iskele":         "istanbul-h-tipi-kiralik-iskele",
+    "flansli-iskele":        "istanbul-flanshli-iskele-kiralam",
+    "kule-iskele":           "istnbul-seyyat-iskele-kiralama",
+    "mobil-iskele":          "istanbul-mobil-iskele-kiralama",
+    "merdivenli-iskele":     "istanbul-merdivenli-kiralik-iske",
+    "konsol-iskele":         "kiralik-konsol-iskele",
+    "cati-iskelesi":         "cati-iskelesi-ve-kenar-koruma",
+    "sahne-podyum-iskelesi": "istanbul-sahne-ve-etkinlik-iskel",
+    "asma-iskele":           "istanbul-cati-iskelesi-kiralama",
+    "endustriyel-iskele":    "istanbul-kiralik-insaat-iskelesi",
+    "sistem-iskele":         "istanbul-kiralik-iskele-firmasi",
+    "kamali-iskele":         "istanbul-yeni-kiralik-iskele",
+    "cuplock-iskele":        "istanbul-kiralik-insaat-iskele",
+    "masa-iskele":           "istanbul-kaliteli-kiralik-iskele",
+    "kalip-alti-iskelesi":   "istanbul-iskele-firmasi",
+    "mantolama-iskelesi":    "istanbul-dis-cephe-iskelesi-kira",
+    "boya-badana-iskelesi":  "istanbul-kaliteli-kiralik-iskele",
+}
+
+# İlçe ve rehber sayfalarında dönüşümlü kullanılan havuz
+GENEL_HAVUZ = [
+    "istanbul-iskele-firmasi",
+    "istanbul-kaliteli-kiralik-iskele",
+    "istanbul-kiralik-insaat-iskele",
+    "istanbul-kiralik-insaat-iskelesi",
+    "istanbul-kiralik-iskele-firmasi",
+    "istanbul-yeni-kiralik-iskele",
+    "istanbul-dis-cephe-iskelesi-kira",
+    "istanbul-h-tipi-kiralik-iskele",
+    "istanbul-mobil-iskele-kiralama",
+    "istanbul-kiralik-insaat-iskele",
+]
+
+# Alt metinleri: dosya adına değil, görselin ne gösterdiğine göre yazıldı.
+GORSEL_ALT = {
+    "deha-iskele-hero":                 "Deha İskele ekibi İstanbul'da bina cephesine iskele kuruyor",
+    "istanbul-dis-cephe-iskelesi-kira": "İstanbul'da bir apartmanın dış cephesine kurulmuş cephe iskelesi",
+    "istanbul-h-tipi-kiralik-iskele":   "H tipi çerçeve iskele, bina cephesi boyunca kat kat kurulmuş hâlde",
+    "istanbul-flanshli-iskele-kiralam": "Flanşlı iskele sisteminin dikme ve rozet bağlantı detayı",
+    "istnbul-seyyat-iskele-kiralama":   "Tekerlekli seyyar kule iskele, çalışma platformu kurulmuş hâlde",
+    "istanbul-mobil-iskele-kiralama":   "Mobil iskele iç mekânda çalışma noktasına konumlandırılmış",
+    "istanbul-merdivenli-kiralik-iske": "Merdiven kulesi bulunan iskele, katlar arası güvenli geçiş",
+    "kiralik-konsol-iskele":            "Konsol iskele, yapıdan dışarı uzatılan konsollar üzerine kurulmuş",
+    "cati-iskelesi-ve-kenar-koruma":    "Çatı iskelesi ve saçak hizasındaki kenar koruma korkuluğu",
+    "istanbul-cati-iskelesi-kiralama":  "Yüksek bina cephesinde askıya alınmış asma iskele platformu",
+    "istanbul-sahne-ve-etkinlik-iskel": "Etkinlik için kurulmuş sahne ve ışık kulesi iskele sistemi",
+    "istanbul-kiralik-insaat-iskelesi": "Endüstriyel tesiste kurulmuş ağır hizmet iskele sistemi",
+    "istanbul-kiralik-iskele-firmasi":  "Modüler sistem iskele, düzensiz cepheye uyacak şekilde kurulmuş",
+    "istanbul-yeni-kiralik-iskele":     "Kamalı bağlantılı iskele sistemi, montaj aşamasında",
+    "istanbul-kiralik-insaat-iskele":   "İnşaat sahasında kurulu iskele sistemi ve çalışma platformları",
+    "istanbul-kaliteli-kiralik-iskele": "Bakımlı iskele malzemesi, kurulum öncesi sahada",
+    "istanbul-iskele-firmasi":          "Deha İskele ekibi kurulum sırasında",
+}

@@ -29,11 +29,16 @@ def uret(zorla=False):
         with Image.open(k) as im:
             im = im.convert("RGB")
             gen, yuk = im.size
-            for b in BOYLAR:
-                # Kaynaktan büyük türev üretme — büyütmek dosyayı şişirir, kalite katmaz.
+            # ⚠️ Kaynak en küçük boydan da küçükse (ör. 380px) hiç türev üretilmiyordu
+            #    ve gorsel() boş srcset döndürüp görseli SESSİZCE düşürüyordu.
+            #    Böyle görseller kendi boyutlarında w500'e yazılıyor.
+            boylar = [b for b in BOYLAR if b <= gen] or [gen]
+            for b in boylar:
                 if b > gen:
                     continue
-                klasor = os.path.join(IMG, f"w{b}")
+                # kaynaktan küçük tek boy varsa onu w500 rafına koy (srcset boş kalmasın)
+                raf = b if b in BOYLAR else min(BOYLAR)
+                klasor = os.path.join(IMG, f"w{raf}")
                 os.makedirs(klasor, exist_ok=True)
                 hedef = os.path.join(klasor, taban + ".webp")
                 if os.path.exists(hedef) and not zorla:
