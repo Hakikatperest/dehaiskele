@@ -171,17 +171,18 @@ def svg_wa():
     return ('<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">'
             '<path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.8c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3a3 3 0 00-.9 2.2c0 1.3.9 2.5 1.1 2.7 1.3 2 2.8 2.9 4.6 3.4 1.1.3 1.7.3 2.2.2.6-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.4-.3z"/></svg>')
 
-def logo(koyu_zemin=True):
-    """⏳ GEÇİCİ logo — gerçek marka logosu gelince _src/logo.py ile türev üretilecek.
-    İskele çerçevesi (H tipi) siluetinden türetilmiş işaret + marka adı."""
-    return (
-        '<span class="logo">'
-        '<svg class="logo-im" viewBox="0 0 40 40" width="38" height="38" aria-hidden="true">'
-        '<rect x="3" y="4" width="34" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/>'
-        '<path d="M3 14h34M3 26h34M14 4v32M26 4v32" stroke="currentColor" stroke-width="2" opacity=".55"/>'
-        '<path d="M3 14l11 12M26 14l11 12" stroke="currentColor" stroke-width="2" opacity=".85"/>'
-        '</svg>'
-        '<span class="logo-ad"><b>DEHA</b><i>İSKELE</i></span></span>')
+def logo(koyu_zemin=False):
+    """Gerçek marka logosu (kullanıcı 2026-09-01'de verdi).
+    ⚠️ İKİ VARYANT ŞART: özgün logodaki "DEHA" yazısı metalik gri; koyu alt bilgi
+       zemininde sönük kalıyor. koyu_zemin=True → beyaza çekilmiş `-ak` varyantı.
+    ⚠️ Kaynak PNG (237 KB) doğrudan kullanılmaz; türevler _src/logo.py üretir."""
+    ad = "deha-logo-ak" if koyu_zemin else "deha-logo"
+    kaynak = ", ".join(f"/images/logo/{ad}-{b}.webp {b}w" for b in (200, 320, 480))
+    return (f'<span class="logo">'
+            f'<img src="/images/logo/{ad}-320.webp" srcset="{kaynak}" '
+            f'sizes="(min-width:860px) 92px, 70px" width="320" height="220" '
+            f'alt="{e(S["marka"])} — İstanbul iskele kiralama" '
+            f'class="logo-im" decoding="async"></span>')
 
 MENU = [
     ("/", "Ana Sayfa"),
@@ -300,7 +301,7 @@ def alt_bilgi():
   <div class="kap">
     <div class="alt-ust">
       <div class="alt-marka">
-        <a class="logo-bag" href="/">{logo()}</a>
+        <a class="logo-bag" href="/">{logo(koyu_zemin=True)}</a>
         <p>{e(S['aciklama'])}</p>
         {tel_btn("dg dg-sari")}
         <p class="alt-pdf">{tanitim_pdf_bag("alt-pdf-bag")}</p>

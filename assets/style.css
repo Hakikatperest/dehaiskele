@@ -11,16 +11,21 @@
 :root{
   /* Kurumsal palet — turuncu ana, grafit taşıyıcı, amber vurgu.
      Referans kurumsal düzenden ilham; tonlar Deha İskele'ye özgü tutuldu. */
-  --koyu:#15181d; --koyu-2:#1d2128; --koyu-3:#282d36;
-  --tur:#f2801d; --tur-2:#ff9a3f; --tur-koyu:#c9640c;
-  --sari:#f2801d; --sari-2:#ff9a3f; --sari-koyu:#b85a08;   /* eski adlar → turuncuya bağlandı */
-  --amber:#ffc233;
+  /* ⚠️ Paletin tamamı MARKA LOGOSUNDAN örneklendi (images/deha-iskele-logo.png):
+     turuncu #FA6400 (iskele platformları + "İSKELE" yazısı),
+     çelik mavi-gri #4A5568 ("DEHA" metalik harfleri),
+     koyu #12151B (logo gölgeleri). ⛔ Bu tonları keyfî değiştirme. */
+  --koyu:#12151b; --koyu-2:#1a1f27; --koyu-3:#252b35;
+  --celik:#4a5568; --celik-2:#5a6478; --celik-ak:#8a93a3;
+  --tur:#fa6400; --tur-2:#ff8226; --tur-koyu:#d24f00;
+  --sari:#fa6400; --sari-2:#ff8226; --sari-koyu:#b84400;   /* eski adlar → marka turuncusuna */
+  --amber:#ffa033;
   --ak:#ffffff; --ak-2:#f5f6f8; --ak-3:#e8ebef;
   --ink:#161b22; --ink-2:#4a5566; --ink-3:#77839a;
   --cizgi:rgba(255,255,255,.10); --cizgi-ak:#dfe3e9;
   --w4-mavi:#4d90ff;          /* ⚠️ markanın #0B57D0'ı koyu zeminde okunmuyor */
   --wa:#25d366;
-  --ust-h:74px;
+  --ust-h:88px;
   --r:14px; --r-s:9px;
   --golge:0 2px 6px rgba(10,14,20,.08), 0 12px 32px rgba(10,14,20,.10);
   --golge-koyu:0 2px 8px rgba(0,0,0,.35), 0 18px 46px rgba(0,0,0,.32);
@@ -61,12 +66,12 @@ li{margin:.35em 0}
   backdrop-filter:blur(12px) saturate(1.3); border-bottom:1px solid var(--cizgi)}
 .ust-ic{display:flex; align-items:center; gap:18px; height:var(--ust-h)}
 .logo-bag{text-decoration:none; color:var(--ak); flex:none}
-.logo{display:inline-flex; align-items:center; gap:10px}
-.logo-im{color:var(--sari); flex:none}
-.logo-ad{display:flex; flex-direction:column; line-height:1.05}
-.logo-ad b{font-size:1.16rem; font-weight:800; letter-spacing:.04em; color:var(--ak)}
-.logo-ad i{font-size:.685rem; font-style:normal; font-weight:600; letter-spacing:.26em;
-  color:var(--sari)}
+.logo{display:inline-flex; align-items:center}
+/* ⚠️ Logo 1.45:1 oranında (kare-ye yakın): iskele kulesi dikey yer kaplıyor.
+   Yükseklik 60px'in altına inince "DEHA" yazısı okunmuyor, slogan satırı lekeye
+   dönüyor. Üst bar yüksekliği (--ust-h) buna göre 88px seçildi. ⛔ Küçültme. */
+.logo-im{display:block; width:auto; height:clamp(46px,5.4vw,62px); flex:none}
+.alt .logo-im{height:72px}
 .menu{display:flex; gap:4px; margin-left:6px}
 .menu a{padding:9px 13px; border-radius:999px; text-decoration:none; color:#c9d1dd;
   font-size:.925rem; font-weight:600; transition:background .18s,color .18s}
@@ -333,7 +338,7 @@ html.js .gel.gorundu{opacity:1; transform:none}
   .yakalar{grid-template-columns:1fr}
 }
 @media (max-width:860px){
-  :root{--ust-h:66px}
+  :root{--ust-h:72px}
   .hamburger{display:flex}
   .menu{position:fixed; inset:var(--ust-h) 0 auto 0; flex-direction:column; gap:0;
     background:var(--koyu); border-bottom:1px solid var(--cizgi); padding:10px 17px 18px;
@@ -669,3 +674,22 @@ html.js .hero-cip li:nth-child(4){animation-delay:.58s}
 .bol .dg-hat2:hover,.hesap .dg-hat2:hover{background:#fff4e8}
 .atla{background:var(--tur); color:#fff}
 :focus-visible{outline-color:var(--tur)}
+
+
+/* ── Logodan gelen çelik tonu (kurumsal yüzeyler) ─────────────────────────── */
+.serit{background:linear-gradient(160deg,var(--koyu-2),var(--koyu))}
+.serit span{color:var(--celik-ak)}
+.bl-sag{background:linear-gradient(160deg,#232a35,var(--koyu))}
+.hero-fon::after{background:linear-gradient(100deg,rgba(14,17,23,.94) 0%,
+  rgba(16,20,27,.8) 46%,rgba(20,25,33,.44) 100%)}
+.kart-ok{background:linear-gradient(178deg,var(--celik),#333c4b);
+  box-shadow:0 2px 0 #1b212b, 0 6px 16px rgba(0,0,0,.2)}
+.dg-teklif{background:linear-gradient(178deg,#39414f,var(--celik));
+  box-shadow:0 2px 0 #262d38, 0 8px 20px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.12)}
+.dg-teklif:hover{box-shadow:0 4px 0 #262d38, 0 14px 28px rgba(0,0,0,.32),
+  inset 0 1px 0 rgba(255,255,255,.16)}
+.tablo th{background:linear-gradient(178deg,var(--celik),#333c4b)}
+.adim li::before{box-shadow:0 2px 0 var(--tur-koyu)}
+.ust{background:rgba(255,255,255,.96)}
+.menu a{color:var(--celik)}
+.hamburger span{background:var(--celik)}
