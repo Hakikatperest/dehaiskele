@@ -205,7 +205,7 @@ html.js .hb.ac .l:nth-child(3)>span{animation-delay:.2s}
 .kart-ok::after{content:" →"}
 
 /* hesaplayıcı */
-.hesap{background:var(--ak)}
+
 .hesap-kutu{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-items:end;
   background:var(--ak-2); border:1px solid var(--cizgi-ak); border-radius:var(--r); padding:20px}
 .hesap-kutu label{display:flex; flex-direction:column; gap:6px; font-size:.86rem; font-weight:600;
@@ -231,7 +231,7 @@ html.js .hb.ac .l:nth-child(3)>span{animation-delay:.2s}
 .tablo a{color:#8a6100; font-weight:700; text-decoration:none}
 
 /* SSS */
-.sss{background:var(--ak)}
+
 .sss-o{border:1px solid var(--cizgi-ak); border-radius:var(--r-s); margin-bottom:9px;
   background:var(--ak-2); overflow:hidden}
 .sss-o summary{cursor:pointer; padding:15px 46px 15px 17px; font-weight:700; font-size:1rem;
@@ -246,7 +246,7 @@ html.js .hb.ac .l:nth-child(3)>span{animation-delay:.2s}
 .sss-c p{margin:0}
 
 /* ilçe ağı */
-.ilceler{background:var(--ak-3)}
+
 .yakalar{display:grid; grid-template-columns:1fr 1fr; gap:26px}
 .yaka h3{padding-bottom:9px; border-bottom:2px solid var(--sari); display:inline-block}
 .ilce-liste{list-style:none; padding:0; display:grid;
@@ -254,7 +254,7 @@ html.js .hb.ac .l:nth-child(3)>span{animation-delay:.2s}
 .ilce-liste a{display:block; padding:8px 11px; border-radius:var(--r-s); text-decoration:none;
   font-size:.92rem; font-weight:600; color:#39424f; transition:background .16s,color .16s}
 .ilce-liste a:hover{background:var(--koyu); color:var(--sari)}
-.komsu{background:var(--ak)}
+
 
 /* CTA */
 .cta{background:var(--koyu); color:var(--ak); text-align:center;
@@ -356,7 +356,7 @@ html.js .gel.gorundu{opacity:1; transform:none}
 }
 
 /* ── Harita (facade — tıklanana kadar iframe yok) ─────────────────────────── */
-.harita-bol{background:var(--ak)}
+
 /* ⚠️ Kullanıcı 2026-09-01: "harita orada direkt gözüksün" — facade kaldırıldı.
    Yerine iframe'e loading="lazy" verildi: ilk açılışta yüklenmiyor, harita görünür
    alana gelince geliyor. Böylece harita hep orada ama sayfa hızı korunuyor. */
@@ -411,7 +411,7 @@ html.js .gel.gorundu{opacity:1; transform:none}
 
 
 /* ── Kiralama dönemleri ───────────────────────────────────────────────────── */
-.donemler{background:var(--ak-3)}
+
 .izgara-3{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
 .donem{background:var(--ak); border:1px solid var(--cizgi-ak); border-radius:var(--r);
   padding:22px 21px; position:relative; overflow:hidden}
@@ -431,7 +431,7 @@ html.js .gel.gorundu{opacity:1; transform:none}
   background:rgba(255,194,51,.1)}
 
 /* ── Firma tanıtım PDF'i (facade) ─────────────────────────────────────────── */
-.tanitim{background:var(--ak)}
+
 .tanitim-kutu{display:grid; grid-template-columns:1.25fr 1fr; gap:26px; align-items:center}
 .pdf-kutu{position:relative; border:1px solid var(--cizgi-ak); border-radius:var(--r);
   overflow:hidden; background:var(--ak-2); box-shadow:var(--golge)}
@@ -547,7 +547,7 @@ html.js .hero-cip li:nth-child(4){animation-delay:.58s}
 .bol-bas .giris{margin:14px auto 0; color:var(--ink-2)}
 
 /* ── Yuvarlak görselli kartlar ───────────────────────────────────────────── */
-.turler{background:var(--ak)}
+
 .izgara-kart{grid-template-columns:repeat(auto-fit,minmax(238px,1fr)); gap:20px}
 .izgara-kart .kart{padding:0; overflow:visible; background:transparent; border:0;
   box-shadow:none; text-align:center}
@@ -947,3 +947,37 @@ body.kaydi .logo-im{height:clamp(42px,4.4vw,50px)}
   /* sabit çubuk her sayfada alt boşluk bıraksın */
   main{padding-bottom:6px}
 }
+
+
+/* ⚠️ Dalga artık güven şeridinin (koyu blok) sonunda; dolgusu bir SONRAKİ
+   bölümün rengi olmalı — beyaz "Hizmetlerimiz" bölümü. Hero'nun altındayken
+   dolgu açık gri, ardındaki şerit koyuydu ve arada gereksiz açık bant kalıyordu. */
+.serit{position:relative; padding-bottom:clamp(46px,5.5vw,86px)}
+.dalga path{fill:#fff}
+.dalga::before{background:var(--tur)}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BÖLÜM RİTMİ — "oturaklı/kurumsal durmuyor" geri bildiriminin asıl sebebi
+   Zeminler rastgele zıplıyordu: beyaz → #f5f6f8 → #e8ebef → beyaz → #f5f6f8 →
+   beyaz → beyaz → beyaz → #e8ebef. İki ayrı gri tonu karışık kullanılıyor,
+   üç beyaz bölüm arka arkaya geliyordu.
+   Artık TEK gri tonu ve düzenli beyaz/gri dönüşümü var.
+   ⛔ Yeni bölüm eklerken ritmi bozma: bir öncekinin tersi zemini ver.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* Zemin artık sıraya göre veriliyor (build.ritim_uygula) — sınıf adına göre değil */
+.bol-ak{background:#fff}
+.bol-gri{background:var(--ak-2)}
+.bolunmus{background:#fff}
+/* dalga, kendisinden sonra gelen bölümün (turler) zeminine akmalı */
+.dalga path{fill:var(--ak-2)}
+
+/* Gri zeminde beyaz kartlar öne çıksın */
+.turler .kart-ic{background:#fff}
+.donemler .donem{background:#fff}
+.sss-o{background:#fff}
+.sss-o[open] summary{background:#fafbfc}
+
+/* İki gri tonundan biri kalktı; --ak-3 yalnız kenar/ayraç için kalıyor */
+
+.bol-gri .kart-ic,.bol-gri .donem,.bol-gri .sss-o,.bol-gri .hesap-kutu{background:#fff}
+.bol-ak .hesap-kutu{background:var(--ak-2)}

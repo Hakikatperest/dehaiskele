@@ -444,7 +444,12 @@ def guven_seridi():
         ("Kurulum, söküm ve sigorta", "İskeleyi biz kurar, biz sökeriz; süreç sigorta güvencesinde"),
     ]
     ic = "".join(f'<li><strong>{e(a)}</strong><span>{e(b)}</span></li>' for a, b in ogeler)
-    return f'<section class="serit"><div class="kap"><ul>{ic}</ul></div></section>'
+    # ⚠️ Dalga ayracı burada, koyu bloğun SONUNDA. Önceden hero'nun altındaydı ve
+    #    dolgusu (açık gri) ile ardından gelen koyu şerit arasında gereksiz açık bir
+    #    bant oluşuyordu — kullanıcı "ortada beyaz çizgi" diye bildirdi.
+    #    Dalga dolgusu daima BİR SONRAKİ bölümün rengiyle aynı olmalı.
+    return (f'<section class="serit"><div class="kap"><ul>{ic}</ul></div>'
+            f'{dalga()}</section>')
 
 def sss_bolum(sorular, baslik="Sık Sorulan Sorular"):
     ic = "".join(
@@ -1197,7 +1202,6 @@ def anasayfa():
       <li>Her gün 08:30 – 19:00</li>
     </ul>
   </div>
-  {dalga()}
 </section>
 
 {guven_seridi()}
@@ -1719,7 +1723,30 @@ def hakkimizda_sayfasi():
 {alt_bilgi()}"""
 
 # ── Yazıcı ──────────────────────────────────────────────────────────────────
+
+def ritim_uygula(sayfa):
+    """Bölüm zeminlerini beyaz/gri DÖNÜŞÜMLÜ yapar.
+    ⚠️ Sınıf bazlı boyama (.turler gri, .hesap beyaz…) yetmiyordu: tür, ilçe ve
+       rehber sayfalarında bölüm dizilimi farklı olduğu için 2-4 aynı zemin arka
+       arkaya geliyor, sayfa "oturaksız" görünüyordu (kullanıcı bildirdi).
+       Zemin artık sayfadaki SIRAYA göre veriliyor, her sayfa tipinde tutarlı.
+    ⛔ Bölüm zeminini CSS'te sınıf adıyla ezme — ritmi bozar."""
+    sayac = [0]
+    def degis(m):
+        sinif = m.group(1)
+        if sinif.startswith("bolunmus"):
+            # Kendi rengi var (beyaz) ama SAYACI ARTIRIR — yoksa ardından gelen
+            # bölüm de beyaz düşüp iki beyaz zemin arka arkaya geliyor.
+            sayac[0] += 1
+            return m.group(0)
+        if any(x in sinif for x in ("serit", "cta", "hero")):
+            return m.group(0)
+        sayac[0] += 1
+        return '<section class="%s %s"' % (sinif, "bol-gri" if sayac[0] % 2 else "bol-ak")
+    return re.sub(r'<section class="((?:bol|bolunmus)\b[^"]*)"', degis, sayfa)
+
 def yaz(yol, ic):
+    ic = ritim_uygula(ic)
     if yol == "/":
         hedef = os.path.join(KOK, "index.html")
     elif yol.endswith("/"):
