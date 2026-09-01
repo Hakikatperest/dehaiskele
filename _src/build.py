@@ -297,7 +297,10 @@ def w4_kredi():
 def alt_bilgi():
     ilce_ln = " · ".join(
         f'<a href="/{i["slug"]}-iskele-kiralama/">{e(i["ad"])}</a>' for i in D.ILCELER)
-    tur_ln = "".join(f'<li><a href="/{t["slug"]}/">{e(t["ad"])}</a></li>' for t in D.TURLER)
+    # ⚠️ 18 tür alt alta footer'ı aşırı uzatıyordu (ekran görüntüsünde kesiliyordu).
+    #    İlk 9 + "tümü" bağlantısı; tam liste /iskele-cesitleri/ sayfasında.
+    tur_ln = "".join(f'<li><a href="/{t["slug"]}/">{e(t["ad"])}</a></li>' for t in D.TURLER[:9])
+    tur_ln += '<li class="alt-tumu"><a href="/iskele-cesitleri/">Tüm iskele çeşitleri →</a></li>' 
     reh_ln = "".join(f'<li><a href="/{r["slug"]}/">{e(r["ad"])}</a></li>' for r in D.REHBERLER)
     return f"""<footer class="alt">
   <div class="kap">
@@ -1098,7 +1101,7 @@ def anasayfa():
 <main id="ana">
 <section class="hero hero-ana hero-tam">
   <div class="hero-fon">{gorsel(D.HERO_GORSEL, D.GORSEL_ALT[D.HERO_GORSEL], boy="100vw", oncelik=True)}</div>
-  <div class="kap hero-ic">
+  <div class="kap hero-metin">
     <p class="hero-ust">İstanbul İskele Kiralama · DEHA İSKELE</p>
     {hero_h1(["İstanbul İskele Kiralama - Deha İskele"])}
     <p class="hero-slogan">“Güvenli Yapılar, Sağlam İskeleler.”</p>

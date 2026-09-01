@@ -83,6 +83,24 @@ for b, n in basliklar.items():
 for b, n in aciklamalar.items():
     if n > 1: hata.append(f"TEKRAR DESC ×{n}: {b[:70]}")
 
+# ── Sınıf çakışması denetimi ────────────────────────────────────────────────
+# ⚠️ Aynı sınıf adının iki farklı rolde kullanılması sessiz tasarım hatası üretiyor:
+#    `.hero-ic` hem iç sayfa section'ı hem anasayfa içerik div'iydi; section'a
+#    uygulanan max-width hero'yu daraltıp kenarda beyaz boşluk bıraktı.
+#    (Aynı sınıf tuzağı daha önce w4-sr'de 47 sayfada içerik gizlemişti.)
+import collections as _c
+rol = _c.defaultdict(set)
+for s in sayfalar:
+    ic_h = open(s, encoding="utf-8").read()
+    for etiket, siniflar in re.findall(r'<(\w+)[^>]*\sclass="([^"]+)"', ic_h):
+        for sn in siniflar.split():
+            rol[sn].add(etiket)
+cakisan = {k: v for k, v in rol.items()
+           if len(v) > 1 and not v <= {"a", "span", "strong", "b", "em", "small", "li", "p", "div"}}
+if cakisan:
+    for k, v in sorted(cakisan.items()):
+        uyari.append(f"SINIF ÇAKIŞMASI '{k}' → {sorted(v)}")
+
 print(f"{len(sayfalar)} sayfa denetlendi")
 if uyari:
     o = collections.Counter(u.split("  ")[0] for u in uyari)
