@@ -197,6 +197,7 @@ def logo(koyu_zemin=False, buyuk=False):
 MENU = [
     ("/", "Ana Sayfa"),
     ("/hakkimizda/", "Hakkımızda"),
+    ("/referanslarimiz/", "Referanslar"),   # 2026-10-24: panel.dehaiskele.com'dan beslenir
     ("/iskele-cesitleri/", "İskele Çeşitleri"),
     ("/iskele-kiralama-fiyatlari/", "Fiyatlar"),
     ("/iskele-is-guvenligi/", "İş Güvenliği"),
@@ -1026,6 +1027,7 @@ def ilce_sayfasi(i):
 
 {sss_bolum(sorular, f"{ad} İskele Kiralama — Sık Sorulan Sorular")}
 
+{referans_bolum(f"{ad} Referanslarımız", [r for r in REF if r.get("ilce") == i["slug"]][:6])}
 {harita_bolum(i)}
 
 <section class="bol komsu"><div class="kap">
@@ -1282,6 +1284,7 @@ def tur_sayfasi(t):
      sayısıyla birlikte yazdım — merak ederseniz kaynağından okuyabilirsiniz.</p>
 </div></section>
 
+{referans_bolum(t["ad"] + " Referanslarımız", [r for r in REF if r.get("tur") == t["slug"]][:6])}
 {sss_bolum(sorular)}
 {tur_ilce_agi(t)}
 {tur_kartlari("Diğer İskele Sistemleri", haric=t["slug"])}
@@ -1318,6 +1321,83 @@ ANA_SSS = [
      "planlasın — komşulara haber vermek bile zaman istiyor :)"),
 ]
 
+# ── Referanslar ─────────────────────────────────────────────────────────────
+# Panelden (panel.dehaiskele.com) gelir: _src/referans_al.py → _src/referanslar.json + img/referans/.
+# Yalnız "Sitede göster" işaretli ve türevi üretilmiş olanlar. ⚠️ Metin panelden gelir → e() ile kaçışlanır.
+def referans_dosya_adi(r):
+    """SEO dostu yayın adı: istanbul-<firma>-<id> (id çakışmayı önler). media.py de bunu kullanır."""
+    k = kucuk(r["firma"])
+    for a, b in (("ç","c"),("ğ","g"),("ı","i"),("ö","o"),("ş","s"),("ü","u"),("â","a"),("î","i"),("û","u")):
+        k = k.replace(a, b)
+    k = re.sub(r"[^a-z0-9]+", "-", k).strip("-")[:50].strip("-")
+    return f"istanbul-{k or 'referans'}-{r['id']}"
+
+REF = [r for r in json.load(open(os.path.join(KOK, "_src", "referanslar.json"), encoding="utf-8"))
+       if r.get("gorunur") and os.path.exists(os.path.join(KOK, "images", "referans",
+                                                          referans_dosya_adi(r) + "-480.webp"))]
+TUR = {t["slug"]: t for t in D.TURLER}
+
+def referans_kart(r, baslik_etiketi="h3"):
+    """Görselin tamamı büyük boyuta bağlantı (ışık kutusu). Yorum/puan şeması YOK (gerçek değerlendirme değil)."""
+    ad = referans_dosya_adi(r)
+    t, i = TUR.get(r.get("tur") or ""), ILCE.get(r.get("ilce") or "")
+    alt = " — ".join(x for x in (r["firma"], t and t["ad"], i and i["ad"]) if x) + ", Deha İskele referans çalışması"
+    img = (f'<img src="/images/referans/{ad}-900.webp" '
+           f'srcset="/images/referans/{ad}-480.webp 480w, /images/referans/{ad}-900.webp 900w, '
+           f'/images/referans/{ad}-1600.webp 1600w" sizes="(min-width:1000px) 380px, (min-width:640px) 50vw, 100vw" '
+           f'alt="{e(alt)}" loading="lazy" decoding="async">')
+    acik = "".join(f"<p>{e(p)}</p>" for p in r["aciklama"].split("\n") if p.strip())
+    rozet = ""
+    if t: rozet += f'<a class="ref-rozet" href="/{t["slug"]}/">{e(t["ad"])}</a>'
+    if i: rozet += f'<a class="ref-rozet" href="{ilce_yolu(i)}">{e(i["ad"])}</a>'
+    return (f'<div class="ref-kart gel"><a class="ref-gorsel" href="/images/referans/{ad}-1600.webp" '
+            f'data-buyut aria-label="{e(r["firma"])} görselini büyüt">{img}</a>'
+            f'<div class="ref-ic">{f"<div class=ref-rozetler>{rozet}</div>" if rozet else ""}'
+            f'<{baslik_etiketi}>{e(r["firma"])}</{baslik_etiketi}>{acik}</div></div>')
+
+def referans_bolum(baslik, liste, giris=None, tumu=True):
+    if not liste:
+        return ""
+    gr = f'<p class="giris">{e(giris)}</p>' if giris else ""
+    dg = ('<div class="ref-tumu"><a class="dg dg-sari" href="/referanslarimiz/"><span>Tüm referanslarımız</span></a></div>'
+          if tumu and len(REF) > len(liste) else "")
+    return (f'<section class="bol referanslar"><div class="kap"><div class="bol-bas"><h2>{e(baslik)}</h2>{gr}</div>'
+            f'<div class="ref-izgara">{"".join(referans_kart(r) for r in liste)}</div>{dg}</div></section>')
+
+def referanslar_sayfasi():
+    yol = "/referanslarimiz/"
+    baslik = f"Referanslarımız — {S['marka']} | İstanbul İskele Kiralama"
+    aciklama = ("Deha İskele'nin İstanbul'da kurduğu iskelelerden örnekler: cephe, mantolama, çatı ve "
+                "endüstriyel iskele işlerimizin fotoğrafları ve kısa açıklamaları.")
+    if REF:
+        ic = (f'<section class="bol referanslar"><div class="kap">'
+              f'<div class="ref-izgara">{"".join(referans_kart(r, "h2") for r in REF)}</div></div></section>')
+        robots = ""
+        sema = ldj({"@context": "https://schema.org", "@type": "CollectionPage", "url": ALAN + yol,
+                    "name": "Referanslarımız", "about": {"@id": ALAN + "/#isletme"}})
+    else:
+        # ⚠️ Boş sayfa ince içerik → indekslenmez, sitemap'e girmez (main()).
+        ic = ('<section class="bol"><div class="kap dar metin"><h2>Referanslarımızı yakında burada paylaşacağız</h2>'
+              '<p>Kurduğumuz iskelelerin fotoğraflarını bu sayfaya ekliyoruz. O zamana kadar cephenizi '
+              'yerinde ölçmek ve net fiyat vermek için bizi arayabilirsiniz.</p></div></section>')
+        robots = '<meta name="robots" content="noindex,follow">\n'
+        sema = ""
+    return head(baslik, aciklama, yol, robots + sema) + ust_header(aktif=yol) + f"""
+{kirinti([("Ana Sayfa", "/"), ("Referanslarımız", None)])}
+<main id="ana">
+<section class="hero hero-ic">
+  <div class="kap">
+    {hero_h1(["Referanslarımız"])}
+    <p class="hero-alt">İstanbul'da kurduğumuz iskelelerden örnekler. Görsele tıklayarak büyütebilirsiniz.</p>
+    <div class="dg-grup">{tel_btn()}{wa_btn()}</div>
+  </div>
+</section>
+{ic}
+{cta_band("Sıradaki iskele sizin cepheniz olsun",
+          "Kat sayısını ve cephe enini söyleyin; aralığı telefonda verelim, kesin fiyatı keşifte çıkaralım.")}
+</main>
+{alt_bilgi()}"""
+
 def anasayfa():
     yol = "/"
     # Google sonuçlarında çıkacak başlık (kullanıcı 2026-09-01'de bu biçimi istedi).
@@ -1350,6 +1430,7 @@ def anasayfa():
 {guven_seridi()}
 {tur_kartlari("Hizmetlerimiz", giris="Kiraladığımız 18 iskele sistemini detaylı olarak inceleyin.")}
 {bolunmus_bolum()}
+{referans_bolum("Referanslarımız", REF[:6], giris="İstanbul'da kurduğumuz iskelelerden bazıları.")}
 {kiralama_donemleri()}
 {hesaplayici()}
 
@@ -1973,9 +2054,12 @@ def hata404():
 
 def sitemap(yollar):
     g = ['<?xml version="1.0" encoding="UTF-8"?>',
-         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+         'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
     for y, oncelik in yollar:
-        g.append(f"  <url><loc>{ALAN}{y}</loc><priority>{oncelik}</priority></url>")
+        gor = ("".join(f"<image:image><image:loc>{ALAN}/images/referans/{referans_dosya_adi(r)}-1600.webp"
+                       f"</image:loc></image:image>" for r in REF) if y == "/referanslarimiz/" else "")
+        g.append(f"  <url><loc>{ALAN}{y}</loc><priority>{oncelik}</priority>{gor}</url>")
     g.append("</urlset>")
     return "\n".join(g) + "\n"
 
@@ -1990,6 +2074,9 @@ def main():
         yaz(f'/{r["slug"]}/', rehber_sayfasi(r)); yollar.append((f'/{r["slug"]}/', "0.7"))
     yaz("/hakkimizda/", hakkimizda_sayfasi()); yollar.append(("/hakkimizda/", "0.9"))
     yaz("/ilceler/", ilceler_sayfasi()); yollar.append(("/ilceler/", "0.9"))
+    yaz("/referanslarimiz/", referanslar_sayfasi())
+    if REF:
+        yollar.append(("/referanslarimiz/", "0.8"))
     yaz("/404.html", hata404())
 
     with open(os.path.join(KOK, "sitemap.xml"), "w", encoding="utf-8") as f:

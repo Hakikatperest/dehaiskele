@@ -153,3 +153,45 @@
   }, { passive: true });
   bak();
 })();
+
+/* Işık kutusu — [data-buyut] bağlantıları büyük görseli tam ekran açar.
+   JS yoksa bağlantı görseli doğrudan açar (yedek davranış). Kütüphane yok.
+   ⚠️ Kaydırma kilidi YALNIZ html'de (body overflow sticky başlığı öldürür). */
+(function () {
+  "use strict";
+  var bag = document.querySelectorAll("[data-buyut]");
+  if (!bag.length) return;
+  var kutu = document.createElement("div"), son = null;
+  kutu.className = "isik";
+  kutu.setAttribute("role", "dialog");
+  kutu.setAttribute("aria-modal", "true");
+  kutu.setAttribute("aria-label", "Büyütülmüş görsel");
+  kutu.innerHTML = '<button class="isik-kapat" type="button" aria-label="Kapat">&times;</button><img alt="">';
+  document.body.appendChild(kutu);
+  var img = kutu.querySelector("img"), kapatDg = kutu.querySelector(".isik-kapat");
+  function kapat() {
+    kutu.classList.remove("acik");
+    document.documentElement.classList.remove("isik-kilit");
+    setTimeout(function () { if (!kutu.classList.contains("acik")) img.removeAttribute("src"); }, 250);
+    if (son) son.focus();
+  }
+  bag.forEach(function (a) {
+    a.addEventListener("click", function (o) {
+      if (o.metaKey || o.ctrlKey || o.shiftKey) return;   // yeni sekmede açmak isteyene dokunma
+      o.preventDefault();
+      son = a;
+      var k = a.querySelector("img");
+      img.src = a.getAttribute("href");
+      img.alt = k ? k.alt : "";
+      kutu.classList.add("acik");
+      document.documentElement.classList.add("isik-kilit");
+      kapatDg.focus();
+    });
+  });
+  kutu.addEventListener("click", function (o) { if (o.target !== img) kapat(); });
+  document.addEventListener("keydown", function (o) {
+    if (!kutu.classList.contains("acik")) return;
+    if (o.key === "Escape") kapat();
+    if (o.key === "Tab") { o.preventDefault(); kapatDg.focus(); }
+  });
+})();

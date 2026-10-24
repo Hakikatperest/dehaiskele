@@ -60,6 +60,41 @@ def uret(zorla=False):
             boyut = sum(os.path.getsize(x) for x in glob.glob(os.path.join(IMG, f"w{b}", "*.webp")))
             print(f"  w{b:<5d} {n:3d} dosya  ort. {boyut/n/1024:5.0f} KB")
 
+def referanslar():
+    """Panelden gelen referans görselleri: img/referans/<id>.webp → images/referans/<yayın adı>-{480,900,1600}.webp.
+    Yayın adı firma adından + id (build.referans_dosya_adi). Artık kullanılmayan türevler silinir.
+    ⚠️ Gizli referansın türevi üretilmez — depo herkese açık Pages adresi."""
+    import json, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from build import referans_dosya_adi
+    ref = json.load(open(os.path.join(KOK, "_src", "referanslar.json"), encoding="utf-8"))
+    dizin = os.path.join(IMG, "referans")
+    os.makedirs(dizin, exist_ok=True)
+    gecerli = set()
+    for r in ref:
+        if not r.get("gorunur"):
+            continue
+        kaynak = os.path.join(KOK, "img", "referans", r["id"] + ".webp")
+        if not os.path.exists(kaynak):
+            continue
+        ad, im = referans_dosya_adi(r), None
+        for w in (480, 900, 1600):
+            hedef = os.path.join(dizin, f"{ad}-{w}.webp")
+            gecerli.add(os.path.basename(hedef))
+            if os.path.exists(hedef) and os.path.getmtime(hedef) >= os.path.getmtime(kaynak):
+                continue
+            im = im or Image.open(kaynak).convert("RGB")
+            t = im if im.width <= w else im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
+            t.save(hedef, "WEBP", quality=80, method=4)
+    for f in os.listdir(dizin):
+        if f not in gecerli:
+            os.remove(os.path.join(dizin, f))
+    print(f"{len(gecerli) // 3} referans görseli hazır")
+
 if __name__ == "__main__":
     import sys
-    uret(zorla="--zorla" in sys.argv)
+    if "--referans" in sys.argv:   # panel yayını: yalnız referanslar (referans_yayinla.sh)
+        referanslar()
+    else:
+        uret(zorla="--zorla" in sys.argv)
+        referanslar()

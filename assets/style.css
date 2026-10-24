@@ -1202,3 +1202,53 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 .video-not strong{color:var(--koyu)}
 .video-dg{justify-content:center; margin-top:18px}
 @media (max-width:620px){.video-kutu{border-radius:12px}}
+
+/* ── Referanslar (panel.dehaiskele.com'dan beslenir) ── */
+.ref-izgara{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:22px}
+.ref-kart{background:var(--ak); border:1px solid var(--cizgi-ak); border-radius:var(--r); overflow:hidden;
+  display:flex; flex-direction:column; box-shadow:0 1px 2px rgba(16,20,26,.05), 0 10px 24px rgba(16,20,26,.06);
+  transition:transform .3s cubic-bezier(.2,.7,.3,1), box-shadow .3s}
+.ref-kart:hover{transform:translateY(-4px); box-shadow:0 2px 4px rgba(16,20,26,.06), 0 22px 44px rgba(16,20,26,.13)}
+.ref-gorsel{display:block; aspect-ratio:4/3; overflow:hidden; background:var(--ak-3)}
+.ref-gorsel img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s}
+.ref-kart:hover .ref-gorsel img{transform:scale(1.04)}
+.ref-ic{padding:16px 18px 18px}
+.ref-ic h2,.ref-ic h3{font-size:1.06rem; margin:0 0 .4em}
+.ref-ic p{font-size:.92rem; color:var(--ink-2); margin:0 0 .6em}
+.ref-rozetler{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px}
+.ref-rozet{display:inline-block; padding:3px 10px; border-radius:999px; font-size:.75rem;
+  font-weight:700; text-decoration:none; color:var(--tur-koyu); background:rgba(250,100,0,.09)}
+.ref-tumu{text-align:center; margin-top:26px}
+@media (max-width:640px){.ref-izgara{grid-template-columns:1fr}}
+
+/* Işık kutusu — [data-buyut]. ⚠️ Kaydırma kilidi YALNIZ html'de (body overflow sticky başlığı öldürür). */
+.isik{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));
+  background:rgba(8,10,14,.92); opacity:0; visibility:hidden; transition:opacity .22s, visibility 0s .22s; cursor:zoom-out}
+.isik.acik{opacity:1; visibility:visible; transition:opacity .22s}
+.isik img{max-width:min(1600px,100%); max-height:100%; width:auto; height:auto; border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6); transform:scale(.96); transition:transform .25s cubic-bezier(.2,.7,.3,1); cursor:default}
+.isik.acik img{transform:none}
+.isik-kapat{position:absolute; top:max(12px,env(safe-area-inset-top)); right:12px; width:46px; height:46px;
+  border-radius:50%; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.12); color:#fff;
+  font-size:30px; line-height:1; cursor:pointer}
+.isik-kapat:hover{background:rgba(255,255,255,.22)}
+html.isik-kilit{overflow:hidden}
+[data-buyut]{cursor:zoom-in}
+@media (prefers-reduced-motion:reduce){.isik,.isik img{transition:none}}
+
+/* 2026-10-24: menüye "Referanslar" eklenince 7 öğe 1366px'te iki satıra kırıldı.
+   Telefon yazısı 1400px altında gizlenir (ikon kalır), linkler tek satır. */
+.menu a{white-space:nowrap}
+@media (max-width:1400px) and (min-width:861px){
+  .menu a{padding:10px 10px; font-size:.9rem}
+  .ust-tel-ic{display:none}
+  .ust-tel-ik{width:42px; height:42px}
+}
+@media (max-width:1080px) and (min-width:861px){
+  .menu a{padding:10px 6px; font-size:.84rem}
+  .menu a::after{left:6px; right:6px}
+  .ust-ara{gap:8px}
+  .ust-ara .dg-teklif{padding-inline:16px}
+}
+@media (max-width:899px) and (min-width:861px){.ust-ara .dg-teklif{display:none}}   /* WhatsApp üst şeritte duruyor */
