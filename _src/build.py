@@ -1332,6 +1332,11 @@ def referans_dosya_adi(r):
     k = re.sub(r"[^a-z0-9]+", "-", k).strip("-")[:50].strip("-")
     return f"istanbul-{k or 'referans'}-{r['id']}"
 
+def referans_gorsel_adlari(r):
+    """Referansın görsel yayın adları (ilki kapak, eski adı korur; sonrakiler -2…-5). media.py de bunu kullanır."""
+    ad = referans_dosya_adi(r)
+    return [ad if n == 0 else f"{ad}-{n + 1}" for n in range(len(r.get("gorseller") or [r["id"]]))]
+
 REF = [r for r in json.load(open(os.path.join(KOK, "_src", "referanslar.json"), encoding="utf-8"))
        if r.get("gorunur") and os.path.exists(os.path.join(KOK, "images", "referans",
                                                           referans_dosya_adi(r) + "-480.webp"))]
@@ -1347,11 +1352,22 @@ def referans_kart(r, baslik_etiketi="h3"):
            f'/images/referans/{ad}-1600.webp 1600w" sizes="(min-width:1000px) 380px, (min-width:640px) 50vw, 100vw" '
            f'alt="{e(alt)}" loading="lazy" decoding="async">')
     acik = "".join(f"<p>{e(p)}</p>" for p in r["aciklama"].split("\n") if p.strip())
+    # ek görseller (2–5): kapağın altında küçük görseller; ışık kutusunda aynı galeri içinde ileri/geri gezilir
+    ekler = [a for a in referans_gorsel_adlari(r)[1:]
+             if os.path.exists(os.path.join(KOK, "images", "referans", a + "-480.webp"))]
+    galeri = f'ref-{r["id"]}'
+    kucuk_g = "".join(
+        f'<a class="ref-kucuk" href="/images/referans/{a}-1600.webp" data-buyut data-galeri="{galeri}" '
+        f'aria-label="{e(r["firma"])} görsel {n + 2}"><img src="/images/referans/{a}-480.webp" '
+        f'alt="{e(alt)} — görsel {n + 2}" loading="lazy" decoding="async" width="480" height="360"></a>'
+        for n, a in enumerate(ekler))
+    kucuk_g = f'<div class="ref-kucukler">{kucuk_g}</div>' if kucuk_g else ""
     rozet = ""
     if t: rozet += f'<a class="ref-rozet" href="/{t["slug"]}/">{e(t["ad"])}</a>'
     if i: rozet += f'<a class="ref-rozet" href="{ilce_yolu(i)}">{e(i["ad"])}</a>'
+    adet = f'<span class="ref-adet">{len(ekler) + 1} fotoğraf</span>' if ekler else ""
     return (f'<div class="ref-kart gel"><a class="ref-gorsel" href="/images/referans/{ad}-1600.webp" '
-            f'data-buyut aria-label="{e(r["firma"])} görselini büyüt">{img}</a>'
+            f'data-buyut data-galeri="{galeri}" aria-label="{e(r["firma"])} görselini büyüt">{img}{adet}</a>{kucuk_g}'
             f'<div class="ref-ic">{f"<div class=ref-rozetler>{rozet}</div>" if rozet else ""}'
             f'<{baslik_etiketi}>{e(r["firma"])}</{baslik_etiketi}>{acik}</div></div>')
 
@@ -2057,8 +2073,10 @@ def sitemap(yollar):
          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
          'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">']
     for y, oncelik in yollar:
-        gor = ("".join(f"<image:image><image:loc>{ALAN}/images/referans/{referans_dosya_adi(r)}-1600.webp"
-                       f"</image:loc></image:image>" for r in REF) if y == "/referanslarimiz/" else "")
+        gor = ("".join(f"<image:image><image:loc>{ALAN}/images/referans/{a}-1600.webp</image:loc></image:image>"
+                       for r in REF for a in referans_gorsel_adlari(r)
+                       if os.path.exists(os.path.join(KOK, "images", "referans", a + "-1600.webp")))
+               if y == "/referanslarimiz/" else "")
         g.append(f"  <url><loc>{ALAN}{y}</loc><priority>{oncelik}</priority>{gor}</url>")
     g.append("</urlset>")
     return "\n".join(g) + "\n"

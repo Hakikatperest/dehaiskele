@@ -1212,6 +1212,21 @@ body.kaydi .ust-kap{box-shadow:0 6px 24px rgba(16,20,26,.12)}
 .ref-gorsel{display:block; aspect-ratio:4/3; overflow:hidden; background:var(--ak-3)}
 .ref-gorsel img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s}
 .ref-kart:hover .ref-gorsel img{transform:scale(1.04)}
+/* referans başına 1–5 görsel (2026-10-26): kapak + küçük görseller, ışık kutusunda galeri */
+.ref-gorsel{position:relative}
+.ref-adet{position:absolute; right:10px; bottom:10px; padding:4px 10px; border-radius:20px; background:rgba(16,20,26,.72);
+  color:#fff; font-size:.8rem; font-weight:600; pointer-events:none}
+.ref-kucukler{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:6px 6px 0}
+.ref-kucuk{display:block; aspect-ratio:4/3; overflow:hidden; border-radius:6px; background:var(--ak-3)}
+.ref-kucuk img{width:100%; height:100%; object-fit:cover; display:block; transition:opacity .2s}
+.ref-kucuk:hover img{opacity:.85}
+.isik-ok{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border:0; border-radius:50%;
+  background:rgba(255,255,255,.14); color:#fff; font-size:2rem; line-height:1; cursor:pointer}
+.isik-ok:hover{background:rgba(255,255,255,.26)}
+.isik-geri{left:max(12px,env(safe-area-inset-left))} .isik-ileri{right:max(12px,env(safe-area-inset-right))}
+.isik-sayac{position:absolute; bottom:max(14px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+  color:#fff; font-size:.95rem; font-variant-numeric:tabular-nums; background:rgba(0,0,0,.4); padding:4px 12px; border-radius:20px}
+.isik-ok[hidden],.isik-sayac[hidden]{display:none}
 .ref-ic{padding:16px 18px 18px}
 .ref-ic h2,.ref-ic h3{font-size:1.06rem; margin:0 0 .4em}
 .ref-ic p{font-size:.92rem; color:var(--ink-2); margin:0 0 .6em}

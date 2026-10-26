@@ -166,9 +166,33 @@
   kutu.setAttribute("role", "dialog");
   kutu.setAttribute("aria-modal", "true");
   kutu.setAttribute("aria-label", "Büyütülmüş görsel");
-  kutu.innerHTML = '<button class="isik-kapat" type="button" aria-label="Kapat">&times;</button><img alt="">';
+  kutu.innerHTML = '<button class="isik-kapat" type="button" aria-label="Kapat">&times;</button><img alt="">' +
+    '<button class="isik-ok isik-geri" type="button" aria-label="Önceki görsel">&#8249;</button>' +
+    '<button class="isik-ok isik-ileri" type="button" aria-label="Sonraki görsel">&#8250;</button>' +
+    '<span class="isik-sayac" aria-live="polite"></span>';
   document.body.appendChild(kutu);
-  var img = kutu.querySelector("img"), kapatDg = kutu.querySelector(".isik-kapat");
+  var img = kutu.querySelector("img"), kapatDg = kutu.querySelector(".isik-kapat"),
+      geriDg = kutu.querySelector(".isik-geri"), ileriDg = kutu.querySelector(".isik-ileri"),
+      sayac = kutu.querySelector(".isik-sayac"), grup = [], sira = 0;
+  // Galeri: aynı data-galeri değerine sahip bağlantılar (referans başına 1–5 görsel) ileri/geri gezilir.
+  function goster(n) {
+    sira = (n + grup.length) % grup.length;
+    var a = grup[sira], k = a.querySelector("img");
+    img.src = a.getAttribute("href");
+    img.alt = k ? k.alt : "";
+    var cok = grup.length > 1;
+    geriDg.hidden = ileriDg.hidden = sayac.hidden = !cok;
+    sayac.textContent = cok ? (sira + 1) + " / " + grup.length : "";
+  }
+  geriDg.addEventListener("click", function (o) { o.stopPropagation(); goster(sira - 1); });
+  ileriDg.addEventListener("click", function (o) { o.stopPropagation(); goster(sira + 1); });
+  var dokunX = null;
+  kutu.addEventListener("touchstart", function (o) { dokunX = o.touches[0].clientX; }, { passive: true });
+  kutu.addEventListener("touchend", function (o) {
+    if (dokunX === null || grup.length < 2) return;
+    var fark = o.changedTouches[0].clientX - dokunX; dokunX = null;
+    if (Math.abs(fark) > 50) goster(sira + (fark < 0 ? 1 : -1));
+  });
   function kapat() {
     kutu.classList.remove("acik");
     document.documentElement.classList.remove("isik-kilit");
@@ -180,18 +204,20 @@
       if (o.metaKey || o.ctrlKey || o.shiftKey) return;   // yeni sekmede açmak isteyene dokunma
       o.preventDefault();
       son = a;
-      var k = a.querySelector("img");
-      img.src = a.getAttribute("href");
-      img.alt = k ? k.alt : "";
+      var g = a.getAttribute("data-galeri");
+      grup = g ? Array.prototype.filter.call(bag, function (x) { return x.getAttribute("data-galeri") === g; }) : [a];
+      goster(grup.indexOf(a));
       kutu.classList.add("acik");
       document.documentElement.classList.add("isik-kilit");
       kapatDg.focus();
     });
   });
-  kutu.addEventListener("click", function (o) { if (o.target !== img) kapat(); });
+  kutu.addEventListener("click", function (o) { if (o.target === kutu || o.target === kapatDg) kapat(); });
   document.addEventListener("keydown", function (o) {
     if (!kutu.classList.contains("acik")) return;
     if (o.key === "Escape") kapat();
+    if (o.key === "ArrowLeft" && grup.length > 1) goster(sira - 1);
+    if (o.key === "ArrowRight" && grup.length > 1) goster(sira + 1);
     if (o.key === "Tab") { o.preventDefault(); kapatDg.focus(); }
   });
 })();

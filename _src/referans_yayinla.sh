@@ -28,7 +28,7 @@ python3 _src/media.py --referans >/dev/null || hata "görsel türevleri üretile
 python3 _src/build.py >/dev/null || hata "site üretilemedi"
 python3 _src/denetim.py >/tmp/dehaiskele-denetim.txt || hata "denetim: $(grep HATA /tmp/dehaiskele-denetim.txt | head -3 | tr '\n' ' ')"
 # ⚠️ Yalnız referans + üretilen çıktılar eklenir; depoda yarım kalmış kaynak düzenlemesi varsa ona dokunulmaz.
-git add _src/referanslar.json img/referans images/referans sitemap.xml '*.html' 2>/dev/null
+git add _src/referanslar.json _src/referans_harita.json img/referans images/referans sitemap.xml '*.html' 2>/dev/null
 if git diff --cached --quiet; then durum ok "değişiklik yok"; exit 0; fi
 git commit -q -m "Referanslar panelden güncellendi" || hata "commit başarısız"
 git push -q origin HEAD:main 2>&1 || hata "GitHub'a gönderilemedi"

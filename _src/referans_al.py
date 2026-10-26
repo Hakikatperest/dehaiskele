@@ -2,7 +2,8 @@
 """Panelden (panel.dehaiskele.com) gelen referans verisini depoya alır.
 Kullanım: python3 _src/referans_al.py /home/panel.dehaiskele.com/veri
 - veri/referanslar.json → _src/referanslar.json (alanlar süzülür, tipler zorlanır)
-- veri/gorseller/<id>.webp → img/referans/<id>.webp — YALNIZ görünürler; gizli/silinenler silinir
+- veri/gorseller/<12hex>.webp → img/referans/<12hex>.webp — YALNIZ görünürler; gizli/silinenler silinir
+- Referans başına 1–5 görsel (`gorseller`, ilki kapak; eski kayıtta yalnız `gorsel`) → _src'de `gorseller` = 12hex listesi
 - data.TURLER / data.ILCELER → veri/secenekler.json (paneldeki "iskele türü" ve "ilçe" listeleri senkron kalsın)
 ⚠️ Panel verisi GÜVENİLMEZ girdi sayılır: id/görsel adı regex'le doğrulanır, metin build'de kaçışlanır."""
 import json, os, re, shutil, sys
@@ -17,11 +18,10 @@ ilceler = {i["slug"] for i in D.ILCELER}
 temiz, kullanilan = [], set()
 for r in ham:
     rid = str(r.get("id", ""))
-    gorsel = str(r.get("gorsel", ""))
-    if not re.fullmatch(r"[a-f0-9]{12}", rid) or gorsel != rid + ".webp":
-        continue
-    kaynak = os.path.join(veri, "gorseller", gorsel)
-    if not os.path.isfile(kaynak):
+    liste = r.get("gorseller") or ([r["gorsel"]] if r.get("gorsel") else [])
+    gorseller = [str(g)[:-5] for g in liste if re.fullmatch(r"[a-f0-9]{12}\.webp", str(g))
+                 and os.path.isfile(os.path.join(veri, "gorseller", str(g)))][:5]
+    if not re.fullmatch(r"[a-f0-9]{12}", rid) or not gorseller:
         continue
     temiz.append({
         "id": rid,
@@ -32,10 +32,11 @@ for r in ham:
         "gorunur": bool(r.get("gorunur")),
         "sira": int(r.get("sira", 0)),
         "tarih": str(r.get("tarih", ""))[:25],
+        "gorseller": gorseller,
     })
     # ⚠️ Gizli referansın görseli depoya (= herkese açık Pages adresine) KOPYALANMAZ.
     if r.get("gorunur"):
-        kullanilan.add(gorsel)
+        kullanilan.update(g + ".webp" for g in gorseller)
 temiz.sort(key=lambda r: (r["sira"], r["tarih"]))
 hedef = os.path.join(KOK, "img", "referans")
 os.makedirs(hedef, exist_ok=True)
